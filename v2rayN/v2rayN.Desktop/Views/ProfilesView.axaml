@@ -96,6 +96,10 @@
                             <PathIcon Data="{StaticResource building_ping}" />
                         </Button.Content>
                     </Button>
+                    <Button x:Name="btnStartParallelNodes" Margin="8,0,2,0" Content="Start selected" />
+                    <Button x:Name="btnStopParallelNodes" Margin="2,0" Content="Stop selected" />
+                    <Button x:Name="btnStopAllParallelNodes" Margin="2,0" Content="Stop all" />
+                    <Button x:Name="btnOrganizeParallelPorts" Margin="2,0" Content="Organize selected" ToolTip.Tip="Assign a checked block of consecutive mixed ports" />
                 </StackPanel>
 
             </WrapPanel>
@@ -120,6 +124,9 @@
                             x:Name="menuSetDefaultServer"
                             Header="{x:Static resx:ResUI.menuSetDefaultServer}"
                             InputGesture="Enter" />
+                        <MenuItem x:Name="menuStartParallelNodes" Header="Start selected nodes (separate mixed ports)" />
+                        <MenuItem x:Name="menuStopParallelNodes" Header="Stop selected nodes" />
+                        <Separator />
                         <MenuItem
                             x:Name="menuEditServer"
                             Header="{x:Static resx:ResUI.menuEditServer}"
@@ -207,6 +214,28 @@
                 </DataGrid.ContextMenu>
 
                 <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="80" CanUserSort="False" Header="LAN access" Tag="AllowLan">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding AllowLan, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="80" Binding="{Binding ParallelStatus}" CanUserSort="False" Header="Status" Tag="ParallelStatus" />
+                    <DataGridTemplateColumn Width="90" CanUserSort="False" Header="Mixed port" Tag="MixedPort">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox
+                                    MinWidth="64"
+                                    Padding="4,1"
+                                    HorizontalContentAlignment="Center"
+                                    IsReadOnly="False"
+                                    Text="{Binding MixedPort, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="100" Binding="{Binding UploadSpeed}" CanUserSort="False" Header="Live upload" Tag="UploadSpeed" />
+                    <DataGridTextColumn Width="100" Binding="{Binding DownloadSpeed}" CanUserSort="False" Header="Live download" Tag="DownloadSpeed" />
                     <DataGridTextColumn
                         Width="80"
                         Binding="{Binding ConfigType}"

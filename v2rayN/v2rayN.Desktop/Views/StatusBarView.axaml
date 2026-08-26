@@ -52,6 +52,19 @@
                 VerticalAlignment="Center"
                 DockPanel.Dock="Left"
                 Orientation="Horizontal">
+                <TextBlock Margin="{StaticResource MarginLr8}" VerticalAlignment="Center" Text="Local mixed :20808" />
+                <ToggleSwitch
+                    x:Name="togEnableMainInbound"
+                    Margin="{StaticResource Margin4}"
+                    HorizontalAlignment="Center"
+                    Theme="{DynamicResource SimpleToggleSwitch}" />
+            </StackPanel>
+
+            <StackPanel
+                Margin="{StaticResource MarginLr8}"
+                VerticalAlignment="Center"
+                DockPanel.Dock="Left"
+                Orientation="Horizontal">
                 <ComboBox
                     x:Name="cmbSystemProxy"
                     Width="160"

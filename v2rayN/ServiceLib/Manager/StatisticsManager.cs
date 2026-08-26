@@ -6,9 +6,11 @@ public class StatisticsManager
     public static StatisticsManager Instance => instance.Value;
 
     private Config _config;
-    private ServerStatItem? _serverStatItem;
+    private readonly Dictionary<string, ServerStatItem> _serverStatItems = new();
+    private readonly SemaphoreSlim _statisticsLock = new(1, 1);
     private List<ServerStatItem> _lstServerStat;
     private Func<ServerSpeedItem, Task>? _updateFunc;
+    private DateTime _lastPeriodicSaveUtc = DateTime.MinValue;
 
     private StatisticsXrayService? _statisticsXray;
     private StatisticsSingboxService? _statisticsSingbox;
@@ -19,10 +21,9 @@ public class StatisticsManager
     {
         _config = config;
         _updateFunc = updateFunc;
+        await InitData();
         if (config.GuiItem.EnableStatistics || _config.GuiItem.DisplayRealTimeSpeed)
         {
-            await InitData();
-
             _statisticsXray = new StatisticsXrayService(config, UpdateServerStatHandler);
             _statisticsSingbox = new StatisticsSingboxService(config, UpdateServerStatHandler);
         }
@@ -43,13 +44,22 @@ public class StatisticsManager
 
     public async Task ClearAllServerStatistics()
     {
-        await SQLiteHelper.Instance.ExecuteAsync($"delete from ServerStatItem ");
-        _serverStatItem = null;
-        _lstServerStat = [];
+        await _statisticsLock.WaitAsync();
+        try
+        {
+            await SQLiteHelper.Instance.ExecuteAsync($"delete from ServerStatItem ");
+            _serverStatItems.Clear();
+            _lstServerStat = [];
+        }
+        finally
+        {
+            _statisticsLock.Release();
+        }
     }
 
     public async Task SaveTo()
     {
+        await _statisticsLock.WaitAsync();
         try
         {
             if (_lstServerStat != null)
@@ -60,6 +70,10 @@ public class StatisticsManager
         catch (Exception ex)
         {
             Logging.SaveLog(_tag, ex);
+        }
+        finally
+        {
+            _statisticsLock.Release();
         }
     }
 
@@ -104,42 +118,56 @@ public class StatisticsManager
 
     private async Task UpdateServerStat(ServerSpeedItem server)
     {
-        await GetServerStatItem(_config.IndexId);
-
-        if (_serverStatItem is null)
+        var indexId = server.IndexId.IsNotEmpty() ? server.IndexId : _config.IndexId;
+        if (indexId.IsNullOrEmpty())
         {
             return;
         }
-        if (server.ProxyUp != 0 || server.ProxyDown != 0)
+        await _statisticsLock.WaitAsync();
+        try
         {
-            _serverStatItem.TodayUp += server.ProxyUp;
-            _serverStatItem.TodayDown += server.ProxyDown;
-            _serverStatItem.TotalUp += server.ProxyUp;
-            _serverStatItem.TotalDown += server.ProxyDown;
-        }
+            var serverStatItem = await GetServerStatItem(indexId);
+            if (server.ProxyUp != 0 || server.ProxyDown != 0)
+            {
+                serverStatItem.TodayUp += server.ProxyUp;
+                serverStatItem.TodayDown += server.ProxyDown;
+                serverStatItem.TotalUp += server.ProxyUp;
+                serverStatItem.TotalDown += server.ProxyDown;
+            }
 
-        server.IndexId = _config.IndexId;
-        server.TodayUp = _serverStatItem.TodayUp;
-        server.TodayDown = _serverStatItem.TodayDown;
-        server.TotalUp = _serverStatItem.TotalUp;
-        server.TotalDown = _serverStatItem.TotalDown;
+            server.IndexId = indexId;
+            server.TodayUp = serverStatItem.TodayUp;
+            server.TodayDown = serverStatItem.TodayDown;
+            server.TotalUp = serverStatItem.TotalUp;
+            server.TotalDown = serverStatItem.TotalDown;
+
+            if (DateTime.UtcNow - _lastPeriodicSaveUtc >= TimeSpan.FromMinutes(1))
+            {
+                await SQLiteHelper.Instance.UpdateAllAsync(_lstServerStat);
+                _lastPeriodicSaveUtc = DateTime.UtcNow;
+            }
+        }
+        finally
+        {
+            _statisticsLock.Release();
+        }
         await _updateFunc?.Invoke(server);
     }
 
-    private async Task GetServerStatItem(string indexId)
+    public async Task UpdateParallelServerStat(ServerSpeedItem server)
+    {
+        await UpdateServerStat(server);
+    }
+
+    private async Task<ServerStatItem> GetServerStatItem(string indexId)
     {
         var ticks = DateTime.Now.Date.Ticks;
-        if (_serverStatItem != null && _serverStatItem.IndexId != indexId)
+        if (!_serverStatItems.TryGetValue(indexId, out var serverStatItem))
         {
-            _serverStatItem = null;
-        }
-
-        if (_serverStatItem == null)
-        {
-            _serverStatItem = _lstServerStat.FirstOrDefault(t => t.IndexId == indexId);
-            if (_serverStatItem == null)
+            serverStatItem = _lstServerStat.FirstOrDefault(t => t.IndexId == indexId);
+            if (serverStatItem == null)
             {
-                _serverStatItem = new ServerStatItem
+                serverStatItem = new ServerStatItem
                 {
                     IndexId = indexId,
                     TotalUp = 0,
@@ -148,16 +176,18 @@ public class StatisticsManager
                     TodayDown = 0,
                     DateNow = ticks
                 };
-                await SQLiteHelper.Instance.ReplaceAsync(_serverStatItem);
-                _lstServerStat.Add(_serverStatItem);
+                await SQLiteHelper.Instance.ReplaceAsync(serverStatItem);
+                _lstServerStat.Add(serverStatItem);
             }
+            _serverStatItems[indexId] = serverStatItem;
         }
 
-        if (_serverStatItem.DateNow != ticks)
+        if (serverStatItem.DateNow != ticks)
         {
-            _serverStatItem.TodayUp = 0;
-            _serverStatItem.TodayDown = 0;
-            _serverStatItem.DateNow = ticks;
+            serverStatItem.TodayUp = 0;
+            serverStatItem.TodayDown = 0;
+            serverStatItem.DateNow = ticks;
         }
+        return serverStatItem;
     }
 }

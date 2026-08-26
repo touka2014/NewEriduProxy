@@ -7,11 +7,13 @@ public partial class CoreConfigSingboxService
         try
         {
             var listen = "0.0.0.0";
-            var listenPort = AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
+            var listenPort = context.LocalPortOverride ?? AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
             var isUsingLocalMixedPort = _node.Address == Global.Loopback && _node.Port == listenPort;
             _coreConfig.inbounds = [];
+            var inboundConf = _config.Inbound.First();
+            var enableMainInbound = context.LocalPortOverride.HasValue || inboundConf.EnableMainInbound;
 
-            if (!context.IsTunEnabled || !isUsingLocalMixedPort)
+            if (enableMainInbound && (!context.IsTunEnabled || !isUsingLocalMixedPort))
             {
                 var inbound = new Inbound4Sbox()
                 {
@@ -21,7 +23,11 @@ public partial class CoreConfigSingboxService
                 };
                 _coreConfig.inbounds.Add(inbound);
 
-                var inboundConf = _config.Inbound.First();
+                if (context.LocalPortOverride.HasValue)
+                {
+                    inboundConf.SecondLocalPortEnabled = false;
+                    inboundConf.AllowLANConn = context.AllowLanOverride ?? false;
+                }
                 inbound.listen_port = listenPort;
 
                 if (inboundConf.SecondLocalPortEnabled)

@@ -22,6 +22,42 @@ public class CoreConfigV2rayServiceTests
     }
 
     [Test]
+    public async Task GenerateClientConfigContent_DisabledMainInbound_ShouldNotListenLocally()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.Inbound.First().EnableMainInbound = false;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(result.Data!.ToString())!;
+
+        await result.Success.Should().BeTrue();
+        await cfg.inbounds.Any(i => i.protocol == nameof(EInboundProtocol.mixed)).Should().BeFalse();
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_ParallelLanOverride_ShouldListenOnAllInterfaces()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray) with
+        {
+            LocalPortOverride = 41210,
+            AllowLanOverride = true,
+        };
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(result.Data!.ToString())!;
+
+        await result.Success.Should().BeTrue();
+        await cfg.inbounds.Should().Contain(i =>
+            i.protocol == nameof(EInboundProtocol.mixed) && i.listen == "0.0.0.0" && i.port == 41210);
+    }
+
+    [Test]
     public async Task GenerateClientConfigContent_HttpOutbound_ShouldEmitHeadersInSettings()
     {
         var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);

@@ -5,6 +5,7 @@ public class ProfileExManager
     private static readonly Lazy<ProfileExManager> _instance = new(() => new());
     private ConcurrentBag<ProfileExItem> _lstProfileEx = [];
     private readonly Queue<string> _queIndexIds = new();
+    private readonly object _portGate = new();
     public static ProfileExManager Instance => _instance.Value;
     private static readonly string _tag = "ProfileExHandler";
 
@@ -181,5 +182,116 @@ public class ProfileExManager
             return 0;
         }
         return _lstProfileEx.Max(t => t?.Sort ?? 0);
+    }
+
+    public void SetMixedPort(string indexId, int port)
+    {
+        var profileEx = GetProfileExItem(indexId);
+        profileEx.MixedPort = port;
+        IndexIdEnqueue(indexId);
+    }
+
+    public int GetMixedPort(string indexId)
+    {
+        lock (_portGate)
+        {
+            var profileEx = GetProfileExItem(indexId);
+            if (profileEx.MixedPort is > 0 and < Global.MaxPort)
+            {
+                return profileEx.MixedPort;
+            }
+
+            profileEx.MixedPort = FindAvailablePort(GetUnavailablePorts([indexId]), 1);
+            IndexIdEnqueue(indexId);
+            return profileEx.MixedPort;
+        }
+    }
+
+    public void SetAllowLan(string indexId, bool allowLan)
+    {
+        var profileEx = GetProfileExItem(indexId);
+        profileEx.AllowLan = allowLan;
+        IndexIdEnqueue(indexId);
+    }
+
+    public bool GetAllowLan(string indexId)
+    {
+        return GetProfileExItem(indexId).AllowLan;
+    }
+
+    public Dictionary<string, int> OrganizeMixedPorts(IEnumerable<string> indexIds)
+    {
+        lock (_portGate)
+        {
+            var ids = indexIds.Where(x => x.IsNotEmpty()).Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return [];
+            }
+
+            var firstPort = FindAvailablePort(GetUnavailablePorts(ids), ids.Count);
+            Dictionary<string, int> result = [];
+            for (var i = 0; i < ids.Count; i++)
+            {
+                var port = firstPort + i;
+                var profileEx = GetProfileExItem(ids[i]);
+                profileEx.MixedPort = port;
+                IndexIdEnqueue(ids[i]);
+                result[ids[i]] = port;
+            }
+            return result;
+        }
+    }
+
+    private HashSet<int> GetUnavailablePorts(IEnumerable<string> excludedIndexIds)
+    {
+        var excluded = excludedIndexIds.ToHashSet();
+        var ports = _lstProfileEx
+            .Where(x => !excluded.Contains(x.IndexId) && x.MixedPort is > 0 and < Global.MaxPort)
+            .Select(x => x.MixedPort)
+            .ToHashSet();
+        ports.Add(Global.DefaultLocalPort);
+
+        try
+        {
+            var properties = IPGlobalProperties.GetIPGlobalProperties();
+            ports.UnionWith(properties.GetActiveTcpListeners().Select(x => x.Port));
+            ports.UnionWith(properties.GetActiveUdpListeners().Select(x => x.Port));
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog("Unable to inspect active ports while allocating a mixed port", ex);
+        }
+        return ports;
+    }
+
+    private static int FindAvailablePort(HashSet<int> unavailable, int consecutiveCount)
+    {
+        var candidateCount = Global.ParallelPortMax - Global.ParallelPortMin - consecutiveCount + 2;
+        if (candidateCount <= 0)
+        {
+            throw new InvalidOperationException("The parallel mixed port range is too small.");
+        }
+
+        var randomOffset = Random.Shared.Next(candidateCount);
+        for (var offset = 0; offset < candidateCount; offset++)
+        {
+            var start = Global.ParallelPortMin + ((randomOffset + offset) % candidateCount);
+            var available = true;
+            for (var i = 0; i < consecutiveCount; i++)
+            {
+                if (unavailable.Contains(start + i))
+                {
+                    available = false;
+                    break;
+                }
+            }
+            if (available)
+            {
+                return start;
+            }
+        }
+
+        throw new InvalidOperationException($"No free block of {consecutiveCount} ports is available in {Global.ParallelPortMin}-{Global.ParallelPortMax}.");
     }
 }

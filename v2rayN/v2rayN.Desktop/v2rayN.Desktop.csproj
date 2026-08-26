@@ -2,10 +2,11 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<ApplicationIcon>Assets\v2rayN.ico</ApplicationIcon>
+		<ApplicationIcon>Assets\NewEriduProxy.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-		<AssemblyName>v2rayN</AssemblyName>
+		<AssemblyName>NewEriduProxy</AssemblyName>
+		<Product>New Eridu Proxy</Product>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<CETCompat>false</CETCompat>
 	</PropertyGroup>
@@ -55,5 +56,25 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+
+	<ItemGroup Condition="Exists('..\runtime-assets\cores')">
+		<Content Include="..\runtime-assets\cores\xray\**\*">
+			<Link>bin\Xray\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\runtime-assets\cores\sing_box\**\*">
+			<Link>bin\sing_box\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\runtime-assets\cores\shared\**\*">
+			<Link>bin\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<Target Name="EnsureReleaseCores" BeforeTargets="Build"
+		Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' == 'win-x64' and !Exists('..\runtime-assets\cores\xray\xray.exe')">
+		<Error Text="Runtime cores are missing. Run scripts\prepare-cores.ps1 from the repository root before building Release." />
+	</Target>
 
 </Project>

@@ -333,10 +333,7 @@ public partial class MainWindowViewModel : MyReactiveObject
         await CertPemManager.Instance.Init(_config);
         TaskManager.Instance.RegUpdateTask(_config, UpdateTaskHandler);
 
-        if (_config.GuiItem.EnableStatistics || _config.GuiItem.DisplayRealTimeSpeed)
-        {
-            await StatisticsManager.Instance.Init(_config, UpdateStatisticsHandler);
-        }
+        await StatisticsManager.Instance.Init(_config, UpdateStatisticsHandler);
         await RefreshServersDispatcherAsync();
 
         await Reload();

@@ -41,6 +41,39 @@ public partial class ProfileItemModel : ReactiveObject
     [Reactive]
     public partial string TotalDown { get; set; }
 
+    [Reactive]
+    public partial int MixedPort { get; set; }
+
+    private bool _allowLan;
+    public bool AllowLan
+    {
+        get => _allowLan;
+        set
+        {
+            if (_allowLan == value)
+            {
+                return;
+            }
+            this.RaiseAndSetIfChanged(ref _allowLan, value);
+            if (IndexId.IsNotEmpty())
+            {
+                ProfileExManager.Instance.SetAllowLan(IndexId, value);
+            }
+        }
+    }
+
+    [Reactive]
+    public partial bool IsParallelRunning { get; set; }
+
+    [Reactive]
+    public partial string ParallelStatus { get; set; }
+
+    [Reactive]
+    public partial string UploadSpeed { get; set; }
+
+    [Reactive]
+    public partial string DownloadSpeed { get; set; }
+
     public string GetSummary()
     {
         var summary = $"[{ConfigType}] {Remarks}";

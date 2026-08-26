@@ -24,7 +24,6 @@ public partial class MainWindow
         Closing += MainWindow_Closing;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         menuSettingsSetUWP.Click += MenuSettingsSetUWP_Click;
-        menuPromotion.Click += MenuPromotion_Click;
         menuClose.Click += MenuClose_Click;
         menuCheckUpdate.Click += MenuCheckUpdate_Click;
         btnNewUpdate.Click += MenuCheckUpdate_Click;
@@ -142,7 +141,7 @@ public partial class MainWindow
              .DisposeWith(disposables);
         });
 
-        Title = $"{Utils.GetVersion()} - {(Utils.IsAdministrator() ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
+        Title = $"New Eridu Proxy {Utils.GetVersion()} - {(Utils.IsAdministrator() ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
         if (_config.UiItem.AutoHideStartup)
         {
             WindowState = WindowState.Minimized;
@@ -241,11 +240,6 @@ public partial class MainWindow
     {
         StorageUI();
         ShowHideWindow(false);
-    }
-
-    private void MenuPromotion_Click(object sender, RoutedEventArgs e)
-    {
-        ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
     }
 
     private void MenuSettingsSetUWP_Click(object sender, RoutedEventArgs e)

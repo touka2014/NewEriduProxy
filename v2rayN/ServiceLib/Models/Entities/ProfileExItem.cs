@@ -11,4 +11,7 @@ public class ProfileExItem
     public int Sort { get; set; }
     public string? Message { get; set; }
     public string? IpInfo { get; set; }
+
+    public int MixedPort { get; set; }
+    public bool AllowLan { get; set; }
 }

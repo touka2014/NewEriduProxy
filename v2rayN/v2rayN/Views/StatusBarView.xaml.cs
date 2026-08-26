@@ -56,6 +56,7 @@ public partial class StatusBarView
             this.OneWayBind(ViewModel, vm => vm.SpeedProxyDisplay, v => v.txtSpeedProxyDisplay.Text).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.SpeedDirectDisplay, v => v.txtSpeedDirectDisplay.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.EnableTun, v => v.togEnableTun.IsChecked).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.EnableMainInbound, v => v.togEnableMainInbound.IsChecked).DisposeWith(disposables);
 
             this.Bind(ViewModel, vm => vm.SystemProxySelected, v => v.cmbSystemProxy.SelectedIndex).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.RoutingItems, v => v.cmbRoutings2.ItemsSource).DisposeWith(disposables);
@@ -74,6 +75,7 @@ public partial class StatusBarView
                 Application.Current?.Dispatcher.Invoke(async () => await RefreshIcon(), DispatcherPriority.Normal);
                 interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
+            ViewModel.IsDispatcherReady = true;
         });
 
         _ = RefreshIcon();

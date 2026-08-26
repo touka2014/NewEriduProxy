@@ -70,6 +70,24 @@
                     VerticalAlignment="Center"
                     DockPanel.Dock="Left"
                     Orientation="Horizontal">
+                    <TextBlock
+                        Margin="{StaticResource MarginLeftRight8}"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource StatusbarItem}"
+                        Text="Local mixed :20808" />
+                    <ToggleButton
+                        x:Name="togEnableMainInbound"
+                        Margin="{StaticResource Margin4}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Enable local mixed port 20808" />
+                </StackPanel>
+
+                <StackPanel
+                    Margin="{StaticResource MarginLeftRight8}"
+                    VerticalAlignment="Center"
+                    DockPanel.Dock="Left"
+                    Orientation="Horizontal">
                     <ComboBox
                         x:Name="cmbSystemProxy"
                         Width="160"
@@ -105,9 +123,9 @@
 
         <tb:TaskbarIcon
             x:Name="tbNotify"
-            IconSource="/Resources/v2rayN.ico"
+            IconSource="/Resources/NewEriduProxy.ico"
             NoLeftClickDelay="True"
-            ToolTipText="v2rayN">
+            ToolTipText="New Eridu Proxy">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu Style="{StaticResource DefContextMenu}">
                     <MenuItem

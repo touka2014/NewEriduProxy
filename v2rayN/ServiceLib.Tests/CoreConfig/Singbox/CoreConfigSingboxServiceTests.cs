@@ -22,6 +22,42 @@ public class CoreConfigSingboxServiceTests
     }
 
     [Test]
+    public async Task GenerateClientConfigContent_DisabledMainInbound_ShouldNotListenLocally()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.Inbound.First().EnableMainInbound = false;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateSocksNode(ECoreType.sing_box);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box);
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+
+        await result.Success.Should().BeTrue();
+        await cfg.inbounds.Any(i => i.type == nameof(EInboundProtocol.mixed)).Should().BeFalse();
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_ParallelLanOverride_ShouldListenOnAllInterfaces()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateSocksNode(ECoreType.sing_box);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box) with
+        {
+            LocalPortOverride = 41210,
+            AllowLanOverride = true,
+        };
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+
+        await result.Success.Should().BeTrue();
+        await cfg.inbounds.Should().Contain(i =>
+            i.type == nameof(EInboundProtocol.mixed) && i.listen == "0.0.0.0" && i.listen_port == 41210);
+    }
+
+    [Test]
     public async Task GenerateClientConfigContent_TunWithLoopbackPreSocks_ShouldKeepMixedInbound()
     {
         var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);

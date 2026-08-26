@@ -144,6 +144,12 @@ public class CoreManager
         return await RunProcess(coreInfo, fileName, true, false);
     }
 
+    public async Task<ProcessService?> StartParallelCore(CoreConfigContext context, string configFileName)
+    {
+        var coreInfo = CoreInfoManager.Instance.GetCoreInfo(context.RunCoreType);
+        return await RunProcess(coreInfo, configFileName, false, false);
+    }
+
     public async Task CoreStop()
     {
         try

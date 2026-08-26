@@ -7,13 +7,20 @@ public partial class CoreConfigV2rayService
         try
         {
             var listen = "0.0.0.0";
-            var listenPort = AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
+            var listenPort = context.LocalPortOverride ?? AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
             _coreConfig.inbounds = [];
             var inboundConf = _config.Inbound.First();
+            if (context.LocalPortOverride is int localPort)
+            {
+                inboundConf.LocalPort = localPort;
+                inboundConf.SecondLocalPortEnabled = false;
+                inboundConf.AllowLANConn = context.AllowLanOverride ?? false;
+            }
             var inbound = BuildInbound(inboundConf, EInboundProtocol.socks, true);
             var isUsingLocalMixedPort = _node.Address == Global.Loopback && _node.Port == listenPort;
+            var enableMainInbound = context.LocalPortOverride.HasValue || inboundConf.EnableMainInbound;
 
-            if (!context.IsTunEnabled || !isUsingLocalMixedPort)
+            if (enableMainInbound && (!context.IsTunEnabled || !isUsingLocalMixedPort))
             {
                 _coreConfig.inbounds.Add(inbound);
 

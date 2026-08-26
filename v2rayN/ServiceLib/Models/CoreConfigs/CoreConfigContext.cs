@@ -11,6 +11,11 @@ public record CoreConfigContext
     public Config AppConfig { get; init; } = new();
     public FullConfigTemplateItem? FullConfigTemplate { get; init; } = new();
 
+    // Optional per-process overrides used by parallel node instances.
+    public int? LocalPortOverride { get; init; }
+    public int? StatePortOverride { get; init; }
+    public bool? AllowLanOverride { get; init; }
+
     public Dictionary<string, string> CustomOutboundContent { get; init; } = new();
 
     // Test ServerTestItem Map

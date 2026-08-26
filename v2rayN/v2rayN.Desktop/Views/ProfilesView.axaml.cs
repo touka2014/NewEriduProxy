@@ -74,6 +74,12 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
             this.BindCommand(ViewModel, vm => vm.SortServerResultCmd, v => v.menuSortServerResult).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.RemoveInvalidServerResultCmd, v => v.menuRemoveInvalidServerResult).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.FastRealPingCmd, v => v.btnFastRealPing).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartParallelNodesCmd, v => v.btnStartParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopParallelNodesCmd, v => v.btnStopParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopAllParallelNodesCmd, v => v.btnStopAllParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.OrganizeParallelPortsCmd, v => v.btnOrganizeParallelPorts).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartParallelNodesCmd, v => v.menuStartParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopParallelNodesCmd, v => v.menuStopParallelNodes).DisposeWith(disposables);
 
             //servers export
             this.BindCommand(ViewModel, vm => vm.Export2ClientConfigCmd, v => v.menuExport2ClientConfig).DisposeWith(disposables);
@@ -138,6 +144,7 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                 Dispatcher.UIThread.Post(RefreshServersBiz, DispatcherPriority.Default);
                 interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
+            ViewModel.IsDispatcherReady = true;
 
             ViewModel.AdjustMainLvColWidthInteraction.RegisterHandler(interaction =>
             {
@@ -367,7 +374,11 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
         try
         {
             var lvColumnItem = _config.UiItem.MainColumnItem.OrderBy(t => t.Index).ToList();
-            var displayIndex = 0;
+            var pinnedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "AllowLan", "ParallelStatus", "MixedPort", "UploadSpeed", "DownloadSpeed"
+            };
+            var displayIndex = 5;
             foreach (var item in lvColumnItem)
             {
                 foreach (var item2 in lstProfiles.Columns)
@@ -385,7 +396,10 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                         else
                         {
                             item2.Width = new DataGridLength(item.Width, DataGridLengthUnitType.Pixel);
-                            item2.DisplayIndex = displayIndex++;
+                            if (!pinnedNames.Contains(item.Name))
+                            {
+                                item2.DisplayIndex = displayIndex++;
+                            }
                         }
                         if (item.Name.StartsWith("to", StringComparison.CurrentCultureIgnoreCase))
                         {
@@ -396,6 +410,15 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                             item2.IsVisible = _config.SpeedTestItem.IPAPIUrl.IsNotEmpty() && !_config.UiItem.HideColumnIpInfo;
                         }
                     }
+                }
+            }
+            var pinnedOrder = new[] { "AllowLan", "ParallelStatus", "MixedPort", "UploadSpeed", "DownloadSpeed" };
+            for (var i = 0; i < pinnedOrder.Length; i++)
+            {
+                var column = lstProfiles.Columns.FirstOrDefault(x => string.Equals(x.Tag?.ToString(), pinnedOrder[i], StringComparison.OrdinalIgnoreCase));
+                if (column != null)
+                {
+                    column.DisplayIndex = i;
                 }
             }
         }

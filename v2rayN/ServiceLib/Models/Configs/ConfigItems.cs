@@ -25,6 +25,7 @@ public class CoreBasicItem
 [Serializable]
 public class InItem
 {
+    public bool EnableMainInbound { get; set; }
     public int LocalPort { get; set; }
     public string Protocol { get; set; }
     public bool UdpEnabled { get; set; }

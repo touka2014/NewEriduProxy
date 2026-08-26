@@ -64,6 +64,7 @@ internal static class CoreConfigTestFactory
             [
                 new InItem
                 {
+                    EnableMainInbound = true,
                     Protocol = nameof(EInboundProtocol.socks),
                     LocalPort = 10808,
                     UdpEnabled = true,

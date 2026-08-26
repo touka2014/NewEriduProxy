@@ -2,10 +2,13 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
+		<AssemblyName>NewEriduProxy</AssemblyName>
+		<Product>New Eridu Proxy</Product>
+		<Description>Multi-node proxy client with separate inbounds and traffic statistics</Description>
 		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
 		<GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
 		<UseWPF>true</UseWPF>
-		<ApplicationIcon>Resources\v2rayN.ico</ApplicationIcon>
+		<ApplicationIcon>Resources\NewEriduProxy.ico</ApplicationIcon>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
@@ -33,10 +36,31 @@
 		<Resource Include="Resources\NotifyIcon3.ico" />
 		<Resource Include="Resources\NotifyIcon4.ico" />
 		<Resource Include="Resources\v2rayN.ico" />
+		<Resource Include="Resources\NewEriduProxy.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ServiceLib\ServiceLib.csproj" />
 	</ItemGroup>
+
+	<ItemGroup Condition="Exists('..\runtime-assets\cores')">
+		<Content Include="..\runtime-assets\cores\xray\**\*">
+			<Link>bin\Xray\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\runtime-assets\cores\sing_box\**\*">
+			<Link>bin\sing_box\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\runtime-assets\cores\shared\**\*">
+			<Link>bin\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<Target Name="EnsureReleaseCores" BeforeTargets="Build"
+		Condition="'$(Configuration)' == 'Release' and !Exists('..\runtime-assets\cores\xray\xray.exe')">
+		<Error Text="Runtime cores are missing. Run scripts\prepare-cores.ps1 from the repository root before building Release." />
+	</Target>
 
 </Project>

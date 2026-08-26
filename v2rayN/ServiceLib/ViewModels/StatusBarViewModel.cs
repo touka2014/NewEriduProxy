@@ -15,6 +15,7 @@ public partial class StatusBarViewModel : MyReactiveObject
     public EventChannel<RxVoid> ReloadRequested { get; } = new();
     public EventChannel<RxVoid> AddServerViaScanRequested { get; } = new();
     public EventChannel<RxVoid> AddServerViaClipboardRequested { get; } = new();
+    public bool IsDispatcherReady { get; set; }
 
     #region ObservableCollection
 
@@ -99,6 +100,9 @@ public partial class StatusBarViewModel : MyReactiveObject
     public partial bool EnableTun { get; set; }
 
     [Reactive]
+    public partial bool EnableMainInbound { get; set; }
+
+    [Reactive]
     public partial bool BlIsNonWindows { get; set; }
 
     #endregion UI
@@ -111,6 +115,7 @@ public partial class StatusBarViewModel : MyReactiveObject
         RunningServerToolTipText = GetRunningServerToolTipText("-");
         BlSystemProxyPacVisible = Utils.IsWindows();
         BlIsNonWindows = Utils.IsNonWindows();
+        EnableMainInbound = _config.Inbound.First().EnableMainInbound;
 
         if (_config.TunModeItem.EnableTun && AllowEnableTun())
         {
@@ -143,6 +148,11 @@ public partial class StatusBarViewModel : MyReactiveObject
                 x => x.EnableTun,
                 y => y == true)
             .Subscribe(async c => await DoEnableTun(c));
+
+        this.WhenAnyValue(
+                x => x.EnableMainInbound,
+                y => y == true)
+            .Subscribe(async c => await DoEnableMainInbound(c));
 
         CopyProxyCmdToClipboardCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -359,6 +369,12 @@ public partial class StatusBarViewModel : MyReactiveObject
 
     private async Task SetListenerType(ESysProxyType type)
     {
+        if ((type is ESysProxyType.ForcedChange or ESysProxyType.Pac) && !_config.Inbound.First().EnableMainInbound)
+        {
+            _config.Inbound.First().EnableMainInbound = EnableMainInbound = true;
+            await ConfigHandler.SaveConfig(_config);
+            ReloadRequested.Publish();
+        }
         if (_config.SystemProxyItem.SysProxyType == type)
         {
             return;
@@ -380,7 +396,7 @@ public partial class StatusBarViewModel : MyReactiveObject
         BlSystemProxyNothing = type == ESysProxyType.Unchanged;
         BlSystemProxyPac = type == ESysProxyType.Pac;
 
-        if (blChange)
+        if (blChange && IsDispatcherReady)
         {
             await DispatcherRefreshIconInteraction.HandleSafe(RxVoid.Default);
         }
@@ -468,6 +484,26 @@ public partial class StatusBarViewModel : MyReactiveObject
         ReloadRequested.Publish();
     }
 
+    private async Task DoEnableMainInbound(bool c)
+    {
+        if (_config.Inbound.First().EnableMainInbound == EnableMainInbound)
+        {
+            return;
+        }
+
+        _config.Inbound.First().EnableMainInbound = EnableMainInbound;
+        if (!EnableMainInbound && (_config.SystemProxyItem.SysProxyType is ESysProxyType.ForcedChange or ESysProxyType.Pac))
+        {
+            _config.SystemProxyItem.SysProxyType = ESysProxyType.ForcedClear;
+            SystemProxySelected = (int)ESysProxyType.ForcedClear;
+            await ChangeSystemProxyAsync(ESysProxyType.ForcedClear, true);
+        }
+
+        await ConfigHandler.SaveConfig(_config);
+        await InboundDisplayStatus();
+        ReloadRequested.Publish();
+    }
+
     private bool AllowEnableTun()
     {
         if (Utils.IsWindows())
@@ -491,6 +527,12 @@ public partial class StatusBarViewModel : MyReactiveObject
 
     public async Task InboundDisplayStatus()
     {
+        if (!_config.Inbound.First().EnableMainInbound)
+        {
+            InboundDisplay = $"{ResUI.LabLocal}: disabled";
+        }
+        else
+        {
         StringBuilder sb = new();
         sb.Append($"[{EInboundProtocol.mixed}:{AppManager.Instance.GetLocalPort(EInboundProtocol.socks)}");
         if (_config.Inbound.First().SecondLocalPortEnabled)
@@ -499,6 +541,7 @@ public partial class StatusBarViewModel : MyReactiveObject
         }
         sb.Append(']');
         InboundDisplay = $"{ResUI.LabLocal}:{sb}";
+        }
 
         if (_config.Inbound.First().AllowLANConn)
         {

@@ -9,7 +9,7 @@ public partial class CoreConfigSingboxService
             _coreConfig.experimental ??= new Experimental4Sbox();
             _coreConfig.experimental.clash_api = new Clash_Api4Sbox()
             {
-                external_controller = $"{Global.Loopback}:{AppManager.Instance.StatePort2}",
+                external_controller = $"{Global.Loopback}:{context.StatePortOverride ?? AppManager.Instance.StatePort2}",
             };
         }
 

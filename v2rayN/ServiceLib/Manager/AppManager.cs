@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace ServiceLib.Manager;
 
 public sealed class AppManager
@@ -74,7 +76,10 @@ public sealed class AppManager
             return false;
         }
         _config = config;
-        Thread.CurrentThread.CurrentUICulture = new(_config.UiItem.CurrentLanguage);
+        CultureInfo.DefaultThreadCurrentCulture = new("en-US");
+        CultureInfo.DefaultThreadCurrentUICulture = new("en-US");
+        Thread.CurrentThread.CurrentCulture = CultureInfo.DefaultThreadCurrentCulture;
+        Thread.CurrentThread.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture;
 
         //Under Win10
         if (Utils.IsWindows() && Environment.OSVersion.Version.Major < 10)
@@ -131,6 +136,7 @@ public sealed class AppManager
 
             await ConfigHandler.SaveConfig(_config);
             await ProfileExManager.Instance.SaveTo();
+            await ParallelNodeManager.Instance.StopAllAsync();
             await StatisticsManager.Instance.SaveTo();
             await CoreManager.Instance.CoreStop();
             StatisticsManager.Instance.Close();
@@ -164,7 +170,7 @@ public sealed class AppManager
 
     public int GetLocalPort(EInboundProtocol protocol)
     {
-        var localPort = _config.Inbound.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks))?.LocalPort ?? 10808;
+        var localPort = _config.Inbound.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks))?.LocalPort ?? Global.DefaultLocalPort;
         return localPort + (int)protocol;
     }
 

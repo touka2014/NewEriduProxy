@@ -402,3 +402,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Locally prepared proxy cores and routing data (see scripts/prepare-cores.ps1)
+/v2rayN/runtime-assets/

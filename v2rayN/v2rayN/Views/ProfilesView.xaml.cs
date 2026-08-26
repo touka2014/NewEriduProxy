@@ -74,6 +74,12 @@ public partial class ProfilesView
             this.BindCommand(ViewModel, vm => vm.SortServerResultCmd, v => v.menuSortServerResult).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.RemoveInvalidServerResultCmd, v => v.menuRemoveInvalidServerResult).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.FastRealPingCmd, v => v.btnFastRealPing).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartParallelNodesCmd, v => v.btnStartParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopParallelNodesCmd, v => v.btnStopParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopAllParallelNodesCmd, v => v.btnStopAllParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.OrganizeParallelPortsCmd, v => v.btnOrganizeParallelPorts).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartParallelNodesCmd, v => v.menuStartParallelNodes).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StopParallelNodesCmd, v => v.menuStopParallelNodes).DisposeWith(disposables);
 
             //servers export
             this.BindCommand(ViewModel, vm => vm.Export2ClientConfigCmd, v => v.menuExport2ClientConfig).DisposeWith(disposables);
@@ -137,6 +143,7 @@ public partial class ProfilesView
                 Application.Current?.Dispatcher.Invoke(RefreshServersBiz, DispatcherPriority.Normal);
                 interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
+            ViewModel.IsDispatcherReady = true;
 
             ViewModel.AdjustMainLvColWidthInteraction.RegisterHandler(interaction =>
             {
@@ -203,13 +210,15 @@ public partial class ProfilesView
 
     private void LstProfiles_ColumnHeader_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not DataGridColumnHeader colHeader || colHeader.TabIndex < 0 || colHeader.Column == null)
+        if (sender is not DataGridColumnHeader colHeader || colHeader.TabIndex < 0 || colHeader.Column is not MyDGTextColumn textColumn)
         {
             return;
         }
 
-        var colName = ((MyDGTextColumn)colHeader.Column).ExName;
-        ViewModel?.SortServer(colName);
+        if (textColumn.CanUserSort)
+        {
+            ViewModel?.SortServer(textColumn.ExName);
+        }
     }
 
     private void menuSelectAll_Click(object sender, RoutedEventArgs e)
@@ -330,10 +339,11 @@ public partial class ProfilesView
         try
         {
             var lvColumnItem = _config.UiItem.MainColumnItem.OrderBy(t => t.Index).ToList();
-            var displayIndex = 0;
+            var pinnedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "UploadSpeed", "DownloadSpeed" };
+            var displayIndex = 5;
             foreach (var item in lvColumnItem)
             {
-                foreach (var item2 in lstProfiles.Columns.Cast<MyDGTextColumn>())
+                foreach (var item2 in lstProfiles.Columns.OfType<MyDGTextColumn>())
                 {
                     if (item2.ExName == item.Name)
                     {
@@ -344,11 +354,10 @@ public partial class ProfilesView
                         else
                         {
                             item2.Width = item.Width;
-                            item2.DisplayIndex = displayIndex++;
-                        }
-                        if (item.Name.StartsWith("to", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            item2.Visibility = _config.GuiItem.EnableStatistics ? Visibility.Visible : Visibility.Hidden;
+                            if (!pinnedNames.Contains(item.Name))
+                            {
+                                item2.DisplayIndex = displayIndex++;
+                            }
                         }
                         if (item.Name.Equals("IpInfo", StringComparison.CurrentCultureIgnoreCase))
                         {
@@ -357,6 +366,11 @@ public partial class ProfilesView
                     }
                 }
             }
+            colAllowLan.DisplayIndex = 0;
+            colParallelStatus.DisplayIndex = 1;
+            colMixedPort.DisplayIndex = 2;
+            colUploadSpeed.DisplayIndex = 3;
+            colDownloadSpeed.DisplayIndex = 4;
         }
         catch (Exception ex)
         {
@@ -369,7 +383,7 @@ public partial class ProfilesView
         try
         {
             List<ColumnItem> lvColumnItem = [];
-            foreach (var item2 in lstProfiles.Columns.Cast<MyDGTextColumn>())
+            foreach (var item2 in lstProfiles.Columns.OfType<MyDGTextColumn>())
             {
                 lvColumnItem.Add(new()
                 {

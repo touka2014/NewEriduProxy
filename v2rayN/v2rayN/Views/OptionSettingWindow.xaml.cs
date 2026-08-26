@@ -160,7 +160,7 @@ public partial class OptionSettingWindow
             {
                 files.AddRange(Directory.GetFiles(path, pattern));
             }
-            var culture = _config.UiItem.CurrentLanguage == Global.Languages.First() ? "zh-cn" : "en-us";
+            const string culture = "en-us";
             var culture2 = "en-us";
             foreach (var ttf in files)
             {

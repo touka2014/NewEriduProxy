@@ -2,17 +2,17 @@ namespace ServiceLib;
 
 public class Global
 {
-    public const string AppName = "v2rayN";
+    public const string AppName = "NewEriduProxy";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
     public const string GeoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";
     public const string SingboxRulesetUrl = @"https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-{0}/{1}.srs";
 
-    public const string PromotionUrl = @"aHR0cHM6Ly85LjIzNDQ1Ni54eXovYWJjLmh0bWw=";
     public const string ConfigFileName = "guiNConfig.json";
     public const string CoreConfigFileName = "config.json";
     public const string CorePreConfigFileName = "configPre.json";
     public const string CoreSpeedtestConfigFileName = "configTest{0}.json";
+    public const string CoreParallelConfigFileName = "configParallel{0}.json";
     public const string ClashMixinConfigFileName = "Mixin.yaml";
 
     public const string NamespaceSample = "ServiceLib.Sample.";
@@ -62,6 +62,10 @@ public class Global
     public const string StreamSecurity = "tls";
     public const string StreamSecurityReality = "reality";
     public const string Loopback = "127.0.0.1";
+    public const int DefaultLocalPort = 20808;
+    public const int LegacyDefaultLocalPort = 10808;
+    public const int ParallelPortMin = 40000;
+    public const int ParallelPortMax = 48999;
     public const string InboundAPIProtocol = "dokodemo-door";
     public const string HttpProtocol = "http://";
     public const string HttpsProtocol = "https://";
@@ -486,14 +490,7 @@ public class Global
 
     public static readonly List<string> Languages =
     [
-        "zh-Hans",
-        "zh-Hant",
-        "en",
-        "fa",
-        "fr",
-        "ru",
-        "hu",
-        "id"
+        "en"
     ];
 
     public static readonly List<string> Alpns =

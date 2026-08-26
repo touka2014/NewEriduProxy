@@ -41,13 +41,14 @@ public static class ConfigHandler
             Loglevel = "warning",
         };
 
-        if (config.Inbound == null)
+        if (config.Inbound == null || config.Inbound.Count == 0)
         {
             config.Inbound = [];
             InItem inItem = new()
             {
+                EnableMainInbound = false,
                 Protocol = nameof(EInboundProtocol.socks),
-                LocalPort = 10808,
+                LocalPort = Global.DefaultLocalPort,
                 UdpEnabled = true,
                 SniffingEnabled = true,
                 RouteOnly = false,
@@ -57,9 +58,11 @@ public static class ConfigHandler
         }
         else
         {
-            if (config.Inbound.Count > 0)
+            config.Inbound.First().Protocol = nameof(EInboundProtocol.socks);
+            // Migrate the upstream default while preserving every custom port.
+            if (config.Inbound.First().LocalPort == Global.LegacyDefaultLocalPort)
             {
-                config.Inbound.First().Protocol = nameof(EInboundProtocol.socks);
+                config.Inbound.First().LocalPort = Global.DefaultLocalPort;
             }
         }
 
@@ -105,12 +108,8 @@ public static class ConfigHandler
         config.UiItem.MainColumnItem ??= [];
         config.UiItem.WindowSizeItem ??= [];
 
-        if (config.UiItem.CurrentLanguage.IsNullOrEmpty())
-        {
-            config.UiItem.CurrentLanguage = Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.CurrentCultureIgnoreCase)
-                ? Global.Languages.First()
-                : Global.Languages[2];
-        }
+        // This customized build intentionally ships with an English-only UI.
+        config.UiItem.CurrentLanguage = "en";
 
         config.ConstItem ??= new ConstItem();
 
@@ -165,6 +164,10 @@ public static class ConfigHandler
         config.ClashUIItem ??= new();
         config.ClashUIItem.ConnectionsColumnItem ??= [];
         config.SystemProxyItem ??= new();
+        if (!config.Inbound.First().EnableMainInbound)
+        {
+            config.SystemProxyItem.SysProxyType = ESysProxyType.ForcedClear;
+        }
         config.WebDavItem ??= new();
         config.CheckUpdateItem ??= new();
         config.Fragment4RayItem ??= new()
@@ -1225,10 +1228,12 @@ public static class ConfigHandler
         }
 
         var maxSort = -1;
+        var isNewProfile = profileItem.IndexId.IsNullOrEmpty();
         if (profileItem.IndexId.IsNullOrEmpty())
         {
             profileItem.IndexId = Utils.GetGuid(false);
             maxSort = ProfileExManager.Instance.GetMaxSort();
+            _ = ProfileExManager.Instance.GetMixedPort(profileItem.IndexId);
         }
         if (!toFile && maxSort < 0)
         {
@@ -1244,6 +1249,10 @@ public static class ConfigHandler
             //profileItem.SetProtocolExtra();
             profileItem.SetProtocolExtra(profileItem.GetProtocolExtra());
             await SQLiteHelper.Instance.ReplaceAsync(profileItem);
+            if (isNewProfile)
+            {
+                await ProfileExManager.Instance.SaveTo();
+            }
         }
         return 0;
     }
@@ -1698,6 +1707,7 @@ public static class ConfigHandler
         if (lstAdd.Count > 0)
         {
             await SQLiteHelper.Instance.InsertAllAsync(lstAdd);
+            await ProfileExManager.Instance.SaveTo();
         }
 
         await SaveConfig(config);
@@ -2637,7 +2647,7 @@ public static class ConfigHandler
         //Bypass the mainland
         var item2 = new RoutingItem()
         {
-            Remarks = $"{ver}绕过大陆(Whitelist)",
+            Remarks = $"{ver}Whitelist",
             Url = string.Empty,
             Sort = maxSort + 1,
         };
@@ -2646,7 +2656,7 @@ public static class ConfigHandler
         //Blacklist
         var item3 = new RoutingItem()
         {
-            Remarks = $"{ver}黑名单(Blacklist)",
+            Remarks = $"{ver}Blacklist",
             Url = string.Empty,
             Sort = maxSort + 2,
         };
@@ -2655,7 +2665,7 @@ public static class ConfigHandler
         //Global
         var item1 = new RoutingItem()
         {
-            Remarks = $"{ver}全局(Global)",
+            Remarks = $"{ver}Global",
             Url = string.Empty,
             Sort = maxSort + 3,
         };

@@ -12,6 +12,7 @@ public partial class ProfilesViewModel : MyReactiveObject
 
     public EventChannel<RxVoid> ReloadRequested { get; } = new();
     public EventChannel<RxVoid> RefreshServersRequested { get; } = new();
+    public bool IsDispatcherReady { get; set; }
 
     #region private prop
 
@@ -76,6 +77,10 @@ public partial class ProfilesViewModel : MyReactiveObject
     public ReactiveCommand<RxVoid, RxVoid> SortServerResultCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> RemoveInvalidServerResultCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> FastRealPingCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> StartParallelNodesCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> StopParallelNodesCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> StopAllParallelNodesCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> OrganizeParallelPortsCmd { get; }
 
     //servers export
     public ReactiveCommand<RxVoid, RxVoid> Export2ClientConfigCmd { get; }
@@ -178,6 +183,13 @@ public partial class ProfilesViewModel : MyReactiveObject
         {
             await ServerSpeedtest(ESpeedActionType.FastRealping);
         });
+        StartParallelNodesCmd = ReactiveCommand.CreateFromTask(StartParallelNodes);
+        StopParallelNodesCmd = ReactiveCommand.CreateFromTask(StopParallelNodes);
+        StopAllParallelNodesCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await ParallelNodeManager.Instance.StopAllAsync();
+        });
+        OrganizeParallelPortsCmd = ReactiveCommand.CreateFromTask(OrganizeParallelPorts);
         MixedTestServerCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await ServerSpeedtest(ESpeedActionType.Mixedtest);
@@ -251,6 +263,11 @@ public partial class ProfilesViewModel : MyReactiveObject
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async result => await UpdateStatistics(result));
 
+        AppEvents.ParallelNodeStatusChanged
+            .AsObservable()
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(UpdateParallelStatus);
+
         #endregion AppEvents
 
         _ = Init();
@@ -307,18 +324,13 @@ public partial class ProfilesViewModel : MyReactiveObject
 
     public async Task UpdateStatistics(ServerSpeedItem update)
     {
-        if (!_config.GuiItem.EnableStatistics
-            || (update.ProxyUp + update.ProxyDown) <= 0
-            || DateTime.Now.Second % 3 != 0)
-        {
-            return;
-        }
-
         try
         {
             var item = ProfileItems.FirstOrDefault(it => it.IndexId == update.IndexId);
             if (item != null)
             {
+                item.UploadSpeed = $"{Utils.HumanFy(update.ProxyUp)}/s";
+                item.DownloadSpeed = $"{Utils.HumanFy(update.ProxyDown)}/s";
                 item.TodayDown = Utils.HumanFy(update.TodayDown);
                 item.TodayUp = Utils.HumanFy(update.TodayUp);
                 item.TotalDown = Utils.HumanFy(update.TotalDown);
@@ -329,6 +341,98 @@ public partial class ProfilesViewModel : MyReactiveObject
         {
         }
         await Task.CompletedTask;
+    }
+
+    private void UpdateParallelStatus(ParallelNodeStatusItem update)
+    {
+        var item = ProfileItems.FirstOrDefault(it => it.IndexId == update.IndexId);
+        if (item == null)
+        {
+            return;
+        }
+        item.MixedPort = update.MixedPort;
+        item.IsParallelRunning = update.IsRunning;
+        item.ParallelStatus = update.Message;
+        item.UploadSpeed = update.IsRunning ? $"{Utils.HumanFy(update.UploadSpeed)}/s" : string.Empty;
+        item.DownloadSpeed = update.IsRunning ? $"{Utils.HumanFy(update.DownloadSpeed)}/s" : string.Empty;
+    }
+
+    private async Task StartParallelNodes()
+    {
+        var selected = SelectedProfiles?.ToList() ?? [];
+        if (selected.Count == 0 && SelectedProfile != null)
+        {
+            selected.Add(SelectedProfile);
+        }
+        if (selected.Count == 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.PleaseSelectServer);
+            return;
+        }
+
+        foreach (var model in selected)
+        {
+            var node = await AppManager.Instance.GetProfileItem(model.IndexId);
+            if (node == null)
+            {
+                continue;
+            }
+            ProfileExManager.Instance.SetMixedPort(model.IndexId, model.MixedPort);
+            ProfileExManager.Instance.SetAllowLan(model.IndexId, model.AllowLan);
+            var result = await ParallelNodeManager.Instance.StartAsync(node, model.MixedPort, model.AllowLan);
+            NoticeManager.Instance.Enqueue(result.Msg);
+        }
+        await ProfileExManager.Instance.SaveTo();
+    }
+
+    private async Task StopParallelNodes()
+    {
+        var selected = SelectedProfiles?.ToList() ?? [];
+        if (selected.Count == 0 && SelectedProfile != null)
+        {
+            selected.Add(SelectedProfile);
+        }
+        foreach (var model in selected)
+        {
+            await ParallelNodeManager.Instance.StopAsync(model.IndexId);
+        }
+    }
+
+    private async Task OrganizeParallelPorts()
+    {
+        var selected = SelectedProfiles?.ToList() ?? [];
+        if (selected.Count == 0 && SelectedProfile != null)
+        {
+            selected.Add(SelectedProfile);
+        }
+        if (selected.Count == 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.PleaseSelectServer);
+            return;
+        }
+
+        selected = selected.OrderBy(x => ProfileItems.IndexOf(x)).ToList();
+        foreach (var model in selected)
+        {
+            await ParallelNodeManager.Instance.StopAsync(model.IndexId);
+        }
+
+        try
+        {
+            var assignments = ProfileExManager.Instance.OrganizeMixedPorts(selected.Select(x => x.IndexId));
+            foreach (var model in selected)
+            {
+                model.MixedPort = assignments[model.IndexId];
+            }
+            await ProfileExManager.Instance.SaveTo();
+            var first = assignments.Values.Min();
+            var last = assignments.Values.Max();
+            NoticeManager.Instance.Enqueue($"Assigned {assignments.Count} consecutive mixed ports: {first}-{last}");
+        }
+        catch (Exception ex)
+        {
+            NoticeManager.Instance.Enqueue(ex.Message);
+        }
     }
 
     #endregion Actions
@@ -389,7 +493,10 @@ public partial class ProfilesViewModel : MyReactiveObject
             SelectedProfile = selected ?? lstModel.First();
         }
 
-        await DispatcherRefreshServersBizInteraction.HandleSafe(RxVoid.Default);
+        if (IsDispatcherReady)
+        {
+            await DispatcherRefreshServersBizInteraction.HandleSafe(RxVoid.Default);
+        }
     }
 
     public async Task RefreshSubscriptions()
@@ -416,7 +523,7 @@ public partial class ProfilesViewModel : MyReactiveObject
 
         await ConfigHandler.SetDefaultServer(_config, lstModel);
 
-        var lstServerStat = (_config.GuiItem.EnableStatistics ? StatisticsManager.Instance.ServerStat : null) ?? [];
+        var lstServerStat = StatisticsManager.Instance.ServerStat ?? [];
         var lstProfileExs = await ProfileExManager.Instance.GetProfileExs();
         lstModel = (from t in lstModel
                     join t2 in lstServerStat on t.IndexId equals t2.IndexId into t2b
@@ -445,7 +552,15 @@ public partial class ProfilesViewModel : MyReactiveObject
                         TodayDown = t22 == null ? "" : Utils.HumanFy(t22.TodayDown),
                         TodayUp = t22 == null ? "" : Utils.HumanFy(t22.TodayUp),
                         TotalDown = t22 == null ? "" : Utils.HumanFy(t22.TotalDown),
-                        TotalUp = t22 == null ? "" : Utils.HumanFy(t22.TotalUp)
+                        TotalUp = t22 == null ? "" : Utils.HumanFy(t22.TotalUp),
+                        MixedPort = t33?.MixedPort is > 0 and < Global.MaxPort
+                            ? t33.MixedPort
+                            : ProfileExManager.Instance.GetMixedPort(t.IndexId),
+                        AllowLan = t33?.AllowLan ?? false,
+                        IsParallelRunning = ParallelNodeManager.Instance.IsRunning(t.IndexId),
+                        ParallelStatus = ParallelNodeManager.Instance.IsRunning(t.IndexId) ? "Running" : "Stopped",
+                        UploadSpeed = string.Empty,
+                        DownloadSpeed = string.Empty
                     }).OrderBy(t => t.Sort).ToList();
 
         return lstModel;

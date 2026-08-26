@@ -1,4 +1,14 @@
-# v2rayN
+# New Eridu Proxy
+
+New Eridu Proxy is a customized Windows build based on v2rayN. It adds independently managed multi-node mixed-proxy listeners, per-node LAN access, live traffic rates and daily traffic totals. The main local mixed listener defaults to port 20808 and remains disabled until explicitly enabled. Promotion entries have been removed and the application UI is English-only.
+
+See [CUSTOMIZATION.md](CUSTOMIZATION.md) for usage, architecture and verified build instructions.
+
+The original v2rayN project and its documentation are available at [2dust/v2rayN](https://github.com/2dust/v2rayN). This fork is not an official v2rayN release.
+
+---
+
+## Upstream project
 
 ### A GUI client for Windows, Linux and macOS. Support [Xray](https://github.com/XTLS/Xray-core) and [sing-box](https://github.com/SagerNet/sing-box) and [others](https://github.com/2dust/v2rayN/wiki/List-of-supported-cores)
 
