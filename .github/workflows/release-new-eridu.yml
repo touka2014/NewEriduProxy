@@ -104,25 +104,7 @@ jobs:
           name: New Eridu Proxy v0.1.0-beta.1 — Signal Search
           prerelease: true
           make_latest: false
-          body: |
-            ## Signal Search
-
-            The first public beta of New Eridu Proxy brings independent multi-node listeners to the familiar v2rayN foundation.
-
-            ### Highlights
-
-            - Run multiple selected nodes through separate mixed inbound ports.
-            - Control LAN access independently for every node.
-            - View live upload, live download, daily traffic, and lifetime traffic per node.
-            - Allocate and organize ports with conflict checks.
-            - Use the traditional local mixed inbound on port 20808 through an opt-in switch.
-            - Enjoy a fully English New Eridu interface with Promotion content removed.
-
-            ### Package
-
-            Download `NewEriduProxy-windows-x64.zip`, extract the complete folder, and run `NewEriduProxy.exe`. Do not run the application directly from inside the ZIP.
-
-            This prerelease is based on v2rayN 7.25.1 and is intended for wider testing before v0.1.0.
+          body_path: .github/release-notes/v0.1.0-beta.1.md
           files: |
             dist/NewEriduProxy-windows-x64.zip
             dist/NewEriduProxy-windows-x64.zip.sha256

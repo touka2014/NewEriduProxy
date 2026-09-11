@@ -1,0 +1,35 @@
+name: Sync GitHub release notes
+
+on:
+  push:
+    branches:
+      - new-eridu-proxy
+    paths:
+      - ".github/release-notes/v*.md"
+      - ".github/workflows/sync-release-notes.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Publish versioned release notes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out release notes
+        uses: actions/checkout@v7
+
+      - name: Update matching GitHub releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          for notes in .github/release-notes/v*.md; do
+            tag="$(basename "$notes" .md)"
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "Updating release notes for $tag"
+              gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes"
+            fi
+          done
