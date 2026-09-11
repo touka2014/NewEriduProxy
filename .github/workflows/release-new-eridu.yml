@@ -15,12 +15,13 @@ jobs:
 
     steps:
       - name: Check out tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Set up .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -88,7 +89,7 @@ jobs:
           "$hash  NewEriduProxy-windows-x64.zip" | Set-Content -LiteralPath "$archive.sha256" -NoNewline
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: NewEriduProxy-windows-x64
           path: |
