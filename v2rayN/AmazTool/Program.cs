@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace AmazTool;
 
 internal static class Program
@@ -5,6 +7,9 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
         try
         {
             // If no arguments are provided, display usage guidelines and exit
@@ -72,7 +77,7 @@ internal static class Program
     {
         Console.WriteLine("Restarting application...");
         Thread.Sleep(1000);
-        Utils.StartV2RayN();
+        Utils.StartMainApp();
     }
 
     /// <summary>

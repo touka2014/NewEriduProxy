@@ -134,7 +134,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
         if (Utils.IsWindows())
         {
-            Title = $"New Eridu Proxy {Utils.GetVersion()} - {(Utils.IsAdministrator() ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
+            Title = $"New Eridu Proxy - V{Utils.GetVersionInfo()} - {(Utils.IsAdministrator() ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
 
             if (!Design.IsDesignMode)
             {
@@ -144,7 +144,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
         else
         {
-            Title = $"New Eridu Proxy {Utils.GetVersion()}";
+            Title = $"New Eridu Proxy - V{Utils.GetVersionInfo()}";
             menuAddServerViaScan.IsVisible = false;
         }
 

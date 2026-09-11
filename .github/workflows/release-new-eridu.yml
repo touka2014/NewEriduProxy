@@ -1,0 +1,127 @@
+name: Release New Eridu Proxy
+
+on:
+  push:
+    tags:
+      - "v0.1.0-beta.1"
+
+permissions:
+  contents: write
+
+jobs:
+  release-windows-x64:
+    name: Build and publish Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Prepare verified runtime cores
+        shell: pwsh
+        run: ./scripts/prepare-cores.ps1
+
+      - name: Restore dependencies
+        shell: pwsh
+        run: dotnet restore v2rayN/v2rayN.sln
+
+      - name: Build release
+        shell: pwsh
+        run: dotnet build v2rayN/v2rayN.sln --no-restore -c Release
+
+      - name: Run tests
+        shell: pwsh
+        run: ./v2rayN/ServiceLib.Tests/bin/Release/net10.0/ServiceLib.Tests.exe --no-ansi --progress off --output Normal
+
+      - name: Publish application
+        shell: pwsh
+        run: >-
+          dotnet publish v2rayN/v2rayN/v2rayN.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -o dist/NewEriduProxy-windows-x64
+
+      - name: Publish upgrade helper
+        shell: pwsh
+        run: >-
+          dotnet publish v2rayN/AmazTool/AmazTool.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -o dist/NewEriduProxy-windows-x64
+
+      - name: Verify clean package
+        shell: pwsh
+        run: |
+          $stage = Resolve-Path "dist/NewEriduProxy-windows-x64"
+          $required = @(
+            "NewEriduProxy.exe",
+            "AmazTool.exe",
+            "bin/Xray/xray.exe",
+            "bin/sing_box/sing-box.exe"
+          )
+          foreach ($relativePath in $required) {
+            if (-not (Test-Path -LiteralPath (Join-Path $stage $relativePath))) {
+              throw "Required release file is missing: $relativePath"
+            }
+          }
+          foreach ($runtimeDirectory in @("guiConfigs", "guiLogs", "guiTemps", "binConfigs")) {
+            if (Test-Path -LiteralPath (Join-Path $stage $runtimeDirectory)) {
+              throw "Runtime user data must not be included: $runtimeDirectory"
+            }
+          }
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $archive = "dist/NewEriduProxy-windows-x64.zip"
+          Compress-Archive -LiteralPath "dist/NewEriduProxy-windows-x64" -DestinationPath $archive -CompressionLevel Optimal
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  NewEriduProxy-windows-x64.zip" | Set-Content -LiteralPath "$archive.sha256" -NoNewline
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewEriduProxy-windows-x64
+          path: |
+            dist/NewEriduProxy-windows-x64.zip
+            dist/NewEriduProxy-windows-x64.zip.sha256
+          if-no-files-found: error
+
+      - name: Create GitHub prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: New Eridu Proxy v0.1.0-beta.1 — Signal Search
+          prerelease: true
+          make_latest: false
+          body: |
+            ## Signal Search
+
+            The first public beta of New Eridu Proxy brings independent multi-node listeners to the familiar v2rayN foundation.
+
+            ### Highlights
+
+            - Run multiple selected nodes through separate mixed inbound ports.
+            - Control LAN access independently for every node.
+            - View live upload, live download, daily traffic, and lifetime traffic per node.
+            - Allocate and organize ports with conflict checks.
+            - Use the traditional local mixed inbound on port 20808 through an opt-in switch.
+            - Enjoy a fully English New Eridu interface with Promotion content removed.
+
+            ### Package
+
+            Download `NewEriduProxy-windows-x64.zip`, extract the complete folder, and run `NewEriduProxy.exe`. Do not run the application directly from inside the ZIP.
+
+            This prerelease is based on v2rayN 7.25.1 and is intended for wider testing before v0.1.0.
+          files: |
+            dist/NewEriduProxy-windows-x64.zip
+            dist/NewEriduProxy-windows-x64.zip.sha256

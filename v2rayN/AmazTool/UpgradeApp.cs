@@ -21,11 +21,12 @@ internal class UpgradeApp
         Console.WriteLine(Resx.Resource.TryTerminateProcess);
         try
         {
-            var existing = Process.GetProcessesByName(Utils.V2rayN);
+            var existing = Process.GetProcessesByName(Utils.MainAppProcessName);
+            var mainAppPath = Utils.GetPath(Utils.MainAppExecutableName);
             foreach (var pp in existing)
             {
                 var path = pp.MainModule?.FileName ?? "";
-                if (path.StartsWith(Utils.GetPath(Utils.V2rayN)))
+                if (string.Equals(path, mainAppPath, StringComparison.OrdinalIgnoreCase))
                 {
                     pp?.Kill();
                     pp?.WaitForExit(1000);
@@ -103,7 +104,7 @@ internal class UpgradeApp
         Console.WriteLine(Resx.Resource.Restartv2rayN);
         Utils.Waiting(2);
 
-        Utils.StartV2RayN();
+        Utils.StartMainApp();
     }
 
     private static bool TryExtractToFile(ZipArchiveEntry entry, string outputPath)

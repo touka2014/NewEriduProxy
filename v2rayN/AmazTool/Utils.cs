@@ -24,16 +24,18 @@ internal class Utils
         return Path.Combine(startupPath, fileName);
     }
 
-    public static string V2rayN => "v2rayN";
+    public const string MainAppProcessName = "NewEriduProxy";
 
-    public static void StartV2RayN()
+    public const string MainAppExecutableName = "NewEriduProxy.exe";
+
+    public static void StartMainApp()
     {
         Process process = new()
         {
             StartInfo = new()
             {
                 UseShellExecute = true,
-                FileName = V2rayN,
+                FileName = MainAppExecutableName,
                 WorkingDirectory = StartupPath()
             }
         };

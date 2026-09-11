@@ -111,9 +111,22 @@ v2rayN\ServiceLib.Tests\bin\Release\net10.0\ServiceLib.Tests.exe --no-ansi --pro
 
 ## Releases
 
-The current stable source tag is [`new-eridu-v7.25.1-1`](https://github.com/touka2014/NewEriduProxy/tree/new-eridu-v7.25.1-1), based on v2rayN 7.25.1.
+The current prerelease is [**v0.1.0-beta.1 — Signal Search**](https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.1), based on v2rayN 7.25.1. It is the first public test build of the independent New Eridu Proxy version line.
 
-Prebuilt packages are not published yet. A packaged GitHub Release will be added after release presentation and screenshots are finalized. Until then, build the customized branch from source using the verified steps above.
+The GitHub Release provides a self-contained Windows x64 package and its SHA-256 checksum. Screenshots will be added later without changing the release version.
+
+### Versioning and release names
+
+New Eridu Proxy follows [Semantic Versioning](https://semver.org/):
+
+- Major versions introduce incompatible changes or mark a new stable generation.
+- Minor versions add compatible features or establish a new development milestone.
+- Patch versions contain compatible fixes and refinements.
+- Prerelease labels such as `beta.1` identify builds that still require wider testing.
+
+Feature milestones may receive a release codename. Patch releases and prerelease builds normally inherit the codename of their parent milestone instead of creating a new name for every build.
+
+The upstream base version is recorded separately in release notes and technical documentation. Historical integration tags such as [`new-eridu-v7.25.1-1`](https://github.com/touka2014/NewEriduProxy/tree/new-eridu-v7.25.1-1) remain available for traceability but are not New Eridu Proxy product versions.
 
 ## Branches and upstream updates
 

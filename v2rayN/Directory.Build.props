@@ -1,7 +1,14 @@
 <Project>
 
     <PropertyGroup>
-        <Version>7.25.1</Version>
+        <VersionPrefix>0.1.0</VersionPrefix>
+        <VersionSuffix>beta.1</VersionSuffix>
+        <AssemblyVersion>0.1.0.0</AssemblyVersion>
+        <FileVersion>0.1.0.0</FileVersion>
+        <Product>New Eridu Proxy</Product>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/touka2014/NewEriduProxy</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/touka2014/NewEriduProxy</PackageProjectUrl>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -10,7 +17,7 @@
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
         <Nullable>annotations</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Authors>2dust</Authors>
+        <Authors>Touka and v2rayN contributors</Authors>
         <PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
         <Copyright>Copyright © 2017-$([System.DateTime]::UtcNow.Year) $(Authors)</Copyright>
         <InvariantGlobalization>false</InvariantGlobalization>
