@@ -1,90 +1,136 @@
 # New Eridu Proxy
 
-New Eridu Proxy is a customized Windows build based on v2rayN. It adds independently managed multi-node mixed-proxy listeners, per-node LAN access, live traffic rates and daily traffic totals. The main local mixed listener defaults to port 20808 and remains disabled until explicitly enabled. Promotion entries have been removed and the application UI is English-only.
+> Multiple routes. One clean control room.
 
-See [CUSTOMIZATION.md](CUSTOMIZATION.md) for usage, architecture and verified build instructions.
+New Eridu Proxy is an unofficial, English-only Windows fork of [v2rayN](https://github.com/2dust/v2rayN) for users who need several proxy nodes online at the same time. Each node can run through its own mixed inbound port, keep an independent LAN access policy, and report live transfer rates plus daily traffic totals.
 
-The original v2rayN project and its documentation are available at [2dust/v2rayN](https://github.com/2dust/v2rayN). This fork is not an official v2rayN release.
+This is more than a visual remix: the runtime, configuration flow, statistics pipeline, and server list have been extended for practical multi-node operation while keeping the familiar v2rayN foundation.
 
----
+## Highlights
 
-## Upstream project
+- Run multiple selected nodes as independent core processes.
+- Assign a dedicated mixed port to every node.
+- Allocate new ports from the checked `40000-48999` range.
+- Reorganize selected nodes into a conflict-checked consecutive port block.
+- Enable LAN access per node instead of applying one global rule.
+- View node status, live upload, live download, daily traffic, and total traffic in the server list.
+- Use the traditional main local inbound on port `20808` when needed.
+- Keep the main local inbound disabled by default with a dedicated switch beside TUN.
+- Use an English-only interface for predictable font and layout behavior.
+- Remove the Promotion menu and its external advertising link.
 
-### A GUI client for Windows, Linux and macOS. Support [Xray](https://github.com/XTLS/Xray-core) and [sing-box](https://github.com/SagerNet/sing-box) and [others](https://github.com/2dust/v2rayN/wiki/List-of-supported-cores)
+## Supported parallel cores
 
-[![CodeFactor](https://www.codefactor.io/repository/github/2dust/v2rayn/badge)](https://www.codefactor.io/repository/github/2dust/v2rayn)
-[![Release](https://img.shields.io/github/v/release/2dust/v2rayN?logo=github&label=Release)](https://github.com/2dust/v2rayN/releases)
-[![Downloads](https://img.shields.io/github/downloads/2dust/v2rayN/latest/total?logo=github&label=Downloads)](https://github.com/2dust/v2rayN/releases)
-[![Telegram](https://img.shields.io/badge/Telegram-Chat-26A5E4?logo=telegram)](https://t.me/v2rayn)
- 
-[![Windows](https://img.shields.io/badge/Windows-supported-0078D6?logo=windows)](https://github.com/2dust/v2rayN) 
-[![Linux](https://img.shields.io/badge/Linux-supported-FCC624?logo=linux&logoColor=000)](https://github.com/2dust/v2rayN) 
-[![macOS](https://img.shields.io/badge/macOS-supported-000000?logo=apple)](https://github.com/2dust/v2rayN) 
-[![GPG Signed](https://img.shields.io/badge/GPG-signed-4B32C3?logo=gnuprivacyguard)](https://github.com/2dust/v2rayN)
+Parallel mixed inbounds are supported for standard nodes using:
 
+- Xray
+- v2fly
+- v2fly v5
+- sing-box
 
----
+Full custom configurations are intentionally excluded from parallel startup because their inbound and statistics endpoints cannot be rewritten safely without making assumptions about the user's configuration.
 
-## Download / 下载
+## Quick start
 
-Download the latest release here:
+1. Import or create your proxy nodes.
+2. Select one or more rows with `Ctrl` or `Shift`.
+3. Review the inline `LAN access` and `Mixed port` values.
+4. Choose **Start selected**.
+5. Use **Stop selected** or **Stop all** when those independent listeners are no longer needed.
 
-在这里下载最新版本：
+Choose **Organize selected** to give the selected nodes a checked block of consecutive mixed ports. Running selected nodes are stopped before their ports are reorganized.
 
-[https://github.com/2dust/v2rayN/releases](https://github.com/2dust/v2rayN/releases)
+The first five server-list columns are always:
 
+1. `LAN access`
+2. `Status`
+3. `Mixed port`
+4. `Live upload`
+5. `Live download`
 
-> [!TIP]
-> v2rayN is the desktop version. For the mobile version, please visit the v2rayNG \
-> v2rayN 是电脑版，手机版请访问 v2rayNG
->
-> https://github.com/2dust/v2rayNG
+## Listener behavior
 
----
+| Listener | Default | Bind address | Purpose |
+| --- | --- | --- | --- |
+| Main local mixed inbound | Port `20808`, disabled | Existing global inbound setting | System proxy, TUN, or traditional single-node workflows |
+| Parallel node inbound | Automatically assigned | `127.0.0.1` | Independent local access to one selected node |
+| Parallel node with LAN access | Opt-in per node | `0.0.0.0` | Access from trusted devices on the local network |
 
-## Documentation / 使用文档
+Before starting or assigning a listener, the application checks active TCP and UDP listeners, the main inbound port, and ports already assigned to other nodes. A conflict stops the operation instead of silently moving the listener.
 
-Read the Wiki for usage guides and configuration details.
+> [!CAUTION]
+> Enabling `LAN access` exposes that node's mixed listener to reachable network interfaces. Only enable it on a trusted network and protect the host with appropriate firewall rules.
 
-请阅读 Wiki 获取使用说明和配置教程。
+## Traffic statistics
 
-[https://github.com/2dust/v2rayN/wiki](https://github.com/2dust/v2rayN/wiki)
+Each running parallel node reports live upload and download rates. Daily and lifetime totals are stored locally with the node profile. Daily counters reset when the local calendar date changes, and statistics are saved periodically as well as during a clean application shutdown.
 
----
+Temporary parallel core configurations are removed when a node stops, when its core exits, and during cleanup after an interrupted previous session.
 
-## Supported Platforms / 支持平台
+## Build from source
 
-| Platform / 平台 | x64 | x86 | arm64 | riscv64 | loong64 |
-| --- | --- | --- | --- | --- | --- |
-| Windows | ✅ | ✅ | ✅ | - | - |
-| Linux | ✅ | - | ✅ | ✅ | ✅ |
-| macOS | ✅ | - | ✅ | - | - |
+### Requirements
 
-Minimum OS requirements: [Release files introduction](https://github.com/2dust/v2rayN/wiki/Release-files-introduction) / 最低系统要求：[发布文件介绍](https://github.com/2dust/v2rayN/wiki/Release-files-introduction)
+- Windows 10 or later
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- PowerShell
+- Git with submodule support
 
----
+Clone the repository and switch to the customized branch:
 
-## GPG Verification / GPG 签名校验
-
-Release files are signed with GPG to verify authenticity and integrity, helping prevent mirror, ISP, or CDN hijacking.
-
-发布文件已使用 GPG 签名，可用于校验文件真实性与完整性，预防镜像站、运营商或 CDN 劫持。
-
-### Fingerprint / 公钥指纹
-
-```text
-7694 5E9F 3E9A 168F 8070 F195 805D 661C
-134D FAF6 8903 C199 463C 31E5 AE90 3AE0
+```powershell
+git clone --recurse-submodules https://github.com/touka2014/NewEriduProxy.git
+cd NewEriduProxy
+git switch new-eridu-proxy
 ```
 
----
+Download the pinned Xray and sing-box runtime assets. The script verifies both archives with SHA-256 before copying any files into the build tree:
 
-## Community / 社区
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\prepare-cores.ps1
+```
 
-Telegram Group / Telegram 群组：
+Restore dependencies and build the Windows release:
 
-[https://t.me/v2rayN](https://t.me/v2rayN)
+```powershell
+dotnet restore v2rayN\v2rayN.sln
+dotnet build v2rayN\v2rayN.sln -c Release
+```
 
-Telegram Channel / Telegram 频道：
+The executable is produced at:
 
-[https://t.me/github_2dust](https://t.me/github_2dust)
+```text
+v2rayN\v2rayN\bin\Release\net10.0-windows10.0.19041.0\NewEriduProxy.exe
+```
+
+Run the test suite with:
+
+```powershell
+v2rayN\ServiceLib.Tests\bin\Release\net10.0\ServiceLib.Tests.exe --no-ansi --progress off --output Normal
+```
+
+## Releases
+
+The current stable source tag is [`new-eridu-v7.25.1-1`](https://github.com/touka2014/NewEriduProxy/tree/new-eridu-v7.25.1-1), based on v2rayN 7.25.1.
+
+Prebuilt packages are not published yet. A packaged GitHub Release will be added after release presentation and screenshots are finalized. Until then, build the customized branch from source using the verified steps above.
+
+## Branches and upstream updates
+
+- `master` mirrors the official v2rayN upstream branch and does not contain New Eridu customization.
+- `new-eridu-proxy` is the stable customized branch.
+- `feature/*`, `fix/*`, and `upgrade/*` branches are used for isolated development and upstream integration.
+
+Official updates are merged into a temporary `upgrade/*` branch first. The customized branch is updated only after conflicts are reviewed, automated tests pass, and the Windows release completes a runtime smoke test.
+
+Technical implementation notes are available in [CUSTOMIZATION.md](CUSTOMIZATION.md).
+
+## Credits
+
+New Eridu Proxy is built on the work of the [v2rayN maintainers and contributors](https://github.com/2dust/v2rayN). Core runtime credit belongs to the respective [Xray](https://github.com/XTLS/Xray-core), [sing-box](https://github.com/SagerNet/sing-box), and v2fly projects.
+
+This community fork is not affiliated with or endorsed by the v2rayN maintainers, HoYoverse, or COGNOSPHERE. Its game-inspired identity is used for this independent customization project.
+
+## License
+
+This repository remains licensed under the [GNU General Public License v3.0](LICENSE), following the upstream v2rayN project.
