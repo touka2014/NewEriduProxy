@@ -210,7 +210,6 @@ public class HysteriaItem
 [Serializable]
 public class ClashUIItem
 {
-    public ERuleMode RuleMode { get; set; }
     public bool EnableIPv6 { get; set; }
     public bool EnableMixinContent { get; set; }
     public int ProxiesSorting { get; set; }
@@ -245,6 +244,7 @@ public class WebDavItem
 public class CheckUpdateItem
 {
     public bool CheckPreReleaseUpdate { get; set; }
+    public bool UpdateViaProxy { get; set; } = true;
     public List<string>? SelectedCoreTypes { get; set; }
 }
 
@@ -280,6 +280,7 @@ public class SimpleDNSItem
     public bool? GlobalFakeIp { get; set; }
     public string? FakeIPRange { get; set; }
     public bool? BlockBindingQuery { get; set; }
+    public bool? BlockAAAAQuery { get; set; }
     public string? DirectDNS { get; set; }
     public string? RemoteDNS { get; set; }
     public string? BootstrapDNS { get; set; }

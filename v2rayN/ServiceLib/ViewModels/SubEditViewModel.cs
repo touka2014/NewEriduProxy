@@ -9,6 +9,7 @@ public partial class SubEditViewModel : MyReactiveObject, ICloseable
 
     [Reactive]
     public partial string CustomCoreType { get; set; }
+
     [Reactive]
     public partial string PrevProfile { get; set; }
 
@@ -74,6 +75,12 @@ public partial class SubEditViewModel : MyReactiveObject, ICloseable
                 NoticeManager.Instance.Enqueue(ResUI.InsecureUrlProtocol);
                 //return;
             }
+        }
+
+        if (!HttpRequestHeadersHelper.TryParse(SelectedSource.RequestHeaders, out _))
+        {
+            NoticeManager.Instance.Enqueue(ResUI.SubRequestHeadersInvalid);
+            return;
         }
 
         SelectedSource.CustomCoreType = Enum.TryParse<ECoreType>(CustomCoreType, out var coreType) ? coreType : null;

@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Security.Principal;
 using CliWrap;
 using CliWrap.Buffered;
@@ -201,7 +200,9 @@ public class Utils
         var parts = query[1..].Split('&', StringSplitOptions.RemoveEmptyEntries);
         foreach (var part in parts)
         {
-            var keyValue = part.Split('=');
+            // Split on the FIRST '=' only: RFC 3986 lists '=' among the sub-delimiters a query
+            // value may carry, so everything after the first one belongs to the value.
+            var keyValue = part.Split('=', 2);
             if (keyValue.Length != 2)
             {
                 continue;
@@ -812,6 +813,40 @@ public class Utils
     {
         return NetworkInterface.GetAllNetworkInterfaces()
             .Any(ni => ni.Name.Equals(inInterfaceName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Whether the host holds a globally routable IPv6 address, that is one inside 2000::/3.
+    /// Link-local and unique local addresses are excluded: they never reach the IPv6 internet,
+    /// so a host holding only those has no IPv6 traffic that could bypass the tunnel, and no
+    /// IPv6 path that traffic sent into the tunnel could come back out of.
+    /// </summary>
+    public static bool HasGlobalIPv6Address()
+    {
+        try
+        {
+            return NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up
+                             && ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+                .Any(ua => IsGlobalUnicastIPv6(ua.Address));
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    private static bool IsGlobalUnicastIPv6(IPAddress address)
+    {
+        if (address.AddressFamily != AddressFamily.InterNetworkV6)
+        {
+            return false;
+        }
+
+        // 2000::/3 is the only range currently assigned for global unicast, which leaves out
+        // ::1, fe80::/10, fc00::/7 and ff00::/8 in a single test.
+        return (address.GetAddressBytes()[0] & 0xE0) == 0x20;
     }
 
     #endregion Speed Test

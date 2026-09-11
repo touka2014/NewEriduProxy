@@ -556,6 +556,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 HTTP headers (JSON) 的本地化字符串。
+        /// </summary>
+        public static string LvRequestHeaders {
+            get {
+                return ResourceManager.GetString("LvRequestHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Type 的本地化字符串。
         /// </summary>
         public static string LvServiceType {
@@ -988,6 +997,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Latency Test 的本地化字符串。
+        /// </summary>
+        public static string menuDelaytest {
+            get {
+                return ResourceManager.GetString("menuDelaytest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 DNS Settings 的本地化字符串。
         /// </summary>
         public static string menuDNSSetting {
@@ -1393,11 +1411,11 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Latency Test 的本地化字符串。
+        ///   查找类似 Promotion 的本地化字符串。
         /// </summary>
-        public static string menuProxiesDelaytest {
+        public static string menuPromotion {
             get {
-                return ResourceManager.GetString("menuProxiesDelaytest", resourceCulture);
+                return ResourceManager.GetString("menuPromotion", resourceCulture);
             }
         }
         
@@ -2626,6 +2644,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Invalid HTTP headers. Use a JSON object with unique header names and string values. Header names and values must not contain line breaks. 的本地化字符串。
+        /// </summary>
+        public static string SubRequestHeadersInvalid {
+            get {
+                return ResourceManager.GetString("SubRequestHeadersInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Optional. Example: {&quot;X-hwid&quot;: &quot;my_device&quot;}. Values override default headers for all URLs in this group, including the subscription conversion service. 的本地化字符串。
+        /// </summary>
+        public static string SubRequestHeadersTips {
+            get {
+                return ResourceManager.GetString("SubRequestHeadersTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 For group please leave blank here 的本地化字符串。
         /// </summary>
         public static string SubUrlTips {
@@ -2761,6 +2797,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Block AAAA Queries 的本地化字符串。
+        /// </summary>
+        public static string TbBlockAAAAQueries {
+            get {
+                return ResourceManager.GetString("TbBlockAAAAQueries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Block IPv6 queries when enabled 的本地化字符串。
+        /// </summary>
+        public static string TbBlockAAAAQueriesTips {
+            get {
+                return ResourceManager.GetString("TbBlockAAAAQueriesTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Block SVCB and HTTPS Queries 的本地化字符串。
         /// </summary>
         public static string TbBlockSVCBHTTPSQueries {
@@ -2770,7 +2824,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Block ECH and HTTP/3 availability checks when enabled 的本地化字符串。
+        ///   查找类似 Block ECH and HTTP/3 availability checks when enabled. Always enabled in Xray 的本地化字符串。
         /// </summary>
         public static string TbBlockSVCBHTTPSQueriesTips {
             get {
@@ -2985,6 +3039,15 @@ namespace ServiceLib.Resx {
         public static string TbDisplayLog {
             get {
                 return ResourceManager.GetString("TbDisplayLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS 的本地化字符串。
+        /// </summary>
+        public static string TbDNS {
+            get {
+                return ResourceManager.GetString("TbDNS", resourceCulture);
             }
         }
         
@@ -4240,6 +4303,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Update via proxy 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsEnableUpdateViaProxy {
+            get {
+                return ResourceManager.GetString("TbSettingsEnableUpdateViaProxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Exception 的本地化字符串。
         /// </summary>
         public static string TbSettingsException {
@@ -4497,6 +4569,42 @@ namespace ServiceLib.Resx {
         public static string TbSettingsMixedConcurrencyCount {
             get {
                 return ResourceManager.GetString("TbSettingsMixedConcurrencyCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Mux setting 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsMux4Ray {
+            get {
+                return ResourceManager.GetString("TbSettingsMux4Ray", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Mux concurrency 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsMux4RayConcurrency {
+            get {
+                return ResourceManager.GetString("TbSettingsMux4RayConcurrency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Mux XUDP concurrency 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsMux4RayXudpConcurrency {
+            get {
+                return ResourceManager.GetString("TbSettingsMux4RayXudpConcurrency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Mux XUDP proxy UDP443 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsMux4RayXudpProxyUDP443 {
+            get {
+                return ResourceManager.GetString("TbSettingsMux4RayXudpProxyUDP443", resourceCulture);
             }
         }
         
@@ -4915,6 +5023,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Process 的本地化字符串。
+        /// </summary>
+        public static string TbSortingProcess {
+            get {
+                return ResourceManager.GetString("TbSortingProcess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Time 的本地化字符串。
         /// </summary>
         public static string TbSortingTime {
@@ -5019,6 +5136,15 @@ namespace ServiceLib.Resx {
         public static string TbVerifyPeerCertByName {
             get {
                 return ResourceManager.GetString("TbVerifyPeerCertByName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Only 的本地化字符串。
+        /// </summary>
+        public static string TbXrayOnly {
+            get {
+                return ResourceManager.GetString("TbXrayOnly", resourceCulture);
             }
         }
         

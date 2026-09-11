@@ -128,31 +128,24 @@ public partial class StatusBarViewModel : MyReactiveObject
 
         #region WhenAnyValue && ReactiveCommand
 
-        this.WhenAnyValue(
-                x => x.SelectedRouting,
-                y => y != null && !y.Remarks.IsNullOrEmpty())
-            .Subscribe(async c => await RoutingSelectedChangedAsync(c));
+        this.WhenAnyValue(x => x.SelectedRouting)
+            .Where(y => y != null && !y.Remarks.IsNullOrEmpty())
+            .SubscribeAsync(async _ => await RoutingSelectedChangedAsync());
 
-        this.WhenAnyValue(
-                x => x.SelectedServer,
-                y => y != null && !y.Text.IsNullOrEmpty())
-            .Subscribe(ServerSelectedChanged);
+        this.WhenAnyValue(x => x.SelectedServer)
+            .Where(y => y != null && !y.Text.IsNullOrEmpty())
+            .Subscribe(_ => ServerSelectedChanged());
 
         SystemProxySelected = (int)_config.SystemProxyItem.SysProxyType;
-        this.WhenAnyValue(
-                x => x.SystemProxySelected,
-                y => y >= 0)
-            .Subscribe(async c => await DoSystemProxySelected(c));
+        this.WhenAnyValue(x => x.SystemProxySelected)
+            .Where(y => y >= 0)
+            .SubscribeAsync(async _ => await DoSystemProxySelected());
 
-        this.WhenAnyValue(
-                x => x.EnableTun,
-                y => y == true)
-            .Subscribe(async c => await DoEnableTun(c));
+        this.WhenAnyValue(x => x.EnableTun)
+            .SubscribeAsync(async _ => await DoEnableTun());
 
-        this.WhenAnyValue(
-                x => x.EnableMainInbound,
-                y => y == true)
-            .Subscribe(async c => await DoEnableMainInbound(c));
+        this.WhenAnyValue(x => x.EnableMainInbound)
+            .SubscribeAsync(async _ => await DoEnableMainInbound());
 
         CopyProxyCmdToClipboardCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -217,12 +210,12 @@ public partial class StatusBarViewModel : MyReactiveObject
         AppEvents.DispatcherStatisticsRequested
             .AsObservable()
             .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .Subscribe(async result => await UpdateStatistics(result));
+            .SubscribeAsync(async result => await UpdateStatistics(result));
 
         AppEvents.SysProxyChangeRequested
             .AsObservable()
             .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .Subscribe(async result => await SetListenerType(result));
+            .SubscribeAsync(async result => await SetListenerType(result));
 
         #endregion AppEvents
 
@@ -310,19 +303,14 @@ public partial class StatusBarViewModel : MyReactiveObject
         var models = lstModel.Select(it => new ComboItem { ID = it.IndexId, Text = it.GetSummary() }).ToList();
 
         BlServers = true;
-        Servers.Clear();
-        Servers.AddRange(models);
+        Servers.ReplaceRange(models);
 
         // Update the ItemsSource before SelectedItem so a collection reset does not clear the tray selection.
         SelectedServer = models.FirstOrDefault(it => it.ID == _config.IndexId) ?? new();
     }
 
-    private void ServerSelectedChanged(bool c)
+    private void ServerSelectedChanged()
     {
-        if (!c)
-        {
-            return;
-        }
         if (SelectedServer == null)
         {
             return;
@@ -334,20 +322,32 @@ public partial class StatusBarViewModel : MyReactiveObject
         SetDefaultServerRequested.Publish(SelectedServer.ID);
     }
 
-    public async Task TestServerAvailability()
+    public async Task<AvailabilityCheckResult?> TestServerAvailability()
     {
         var item = await ConfigHandler.GetDefaultServer(_config);
         if (item == null)
         {
-            return;
+            return null;
         }
 
         await TestServerAvailabilitySub(ResUI.Speedtesting);
 
-        var msg = await Task.Run(ConnectionHandler.RunAvailabilityCheck);
+        var result = await Task.Run(ConnectionHandler.RunAvailabilityCheck);
+        var msg = string.Format(ResUI.TestMeOutput, result.Time, result.Ip);
+
+        var ip = result.GetValidIp();
+        if (ip.IsNotEmpty())
+        {
+            ProfileExManager.Instance.SetTestIpInfo(item.IndexId, ip);
+        }
+        if (result.Time > 0)
+        {
+            ProfileExManager.Instance.SetTestDelay(item.IndexId, result.Time);
+        }
 
         NoticeManager.Instance.SendMessageEx(msg);
         await TestServerAvailabilitySub(msg);
+        return result;
     }
 
     private async Task TestServerAvailabilitySub(string msg)
@@ -406,19 +406,13 @@ public partial class StatusBarViewModel : MyReactiveObject
     {
         var routings = await AppManager.Instance.RoutingItems();
 
-        RoutingItems.Clear();
-        RoutingItems.AddRange(routings);
+        RoutingItems.ReplaceRange(routings);
 
         SelectedRouting = routings.FirstOrDefault(t => t.IsActive == true);
     }
 
-    private async Task RoutingSelectedChangedAsync(bool c)
+    private async Task RoutingSelectedChangedAsync()
     {
-        if (!c)
-        {
-            return;
-        }
-
         if (SelectedRouting == null)
         {
             return;
@@ -438,12 +432,8 @@ public partial class StatusBarViewModel : MyReactiveObject
         }
     }
 
-    private async Task DoSystemProxySelected(bool c)
+    private async Task DoSystemProxySelected()
     {
-        if (!c)
-        {
-            return;
-        }
         if (_config.SystemProxyItem.SysProxyType == (ESysProxyType)SystemProxySelected)
         {
             return;
@@ -451,7 +441,7 @@ public partial class StatusBarViewModel : MyReactiveObject
         await SetListenerType((ESysProxyType)SystemProxySelected);
     }
 
-    private async Task DoEnableTun(bool c)
+    private async Task DoEnableTun()
     {
         if (_config.TunModeItem.EnableTun == EnableTun)
         {
@@ -484,7 +474,7 @@ public partial class StatusBarViewModel : MyReactiveObject
         ReloadRequested.Publish();
     }
 
-    private async Task DoEnableMainInbound(bool c)
+    private async Task DoEnableMainInbound()
     {
         if (_config.Inbound.First().EnableMainInbound == EnableMainInbound)
         {

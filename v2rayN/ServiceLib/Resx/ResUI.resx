@@ -417,6 +417,9 @@
   <data name="menuOptionSetting" xml:space="preserve">
     <value>Option Setting</value>
   </data>
+  <data name="menuPromotion" xml:space="preserve">
+    <value>Promotion</value>
+  </data>
   <data name="menuReload" xml:space="preserve">
     <value>Reload</value>
   </data>
@@ -689,6 +692,9 @@
   </data>
   <data name="TbSettingsEnableCheckPreReleaseUpdate" xml:space="preserve">
     <value>Check for pre-release</value>
+  </data>
+  <data name="TbSettingsEnableUpdateViaProxy" xml:space="preserve">
+    <value>Update via proxy</value>
   </data>
   <data name="TbSettingsException" xml:space="preserve">
     <value>Exception</value>
@@ -1017,6 +1023,15 @@
   <data name="TbSettingsMux4SboxProtocol" xml:space="preserve">
     <value>sing-box Mux Protocol</value>
   </data>
+  <data name="TbSettingsMux4RayConcurrency" xml:space="preserve">
+    <value>Xray Mux concurrency</value>
+  </data>
+  <data name="TbSettingsMux4RayXudpConcurrency" xml:space="preserve">
+    <value>Xray Mux XUDP concurrency</value>
+  </data>
+  <data name="TbSettingsMux4RayXudpProxyUDP443" xml:space="preserve">
+    <value>Xray Mux XUDP proxy UDP443</value>
+  </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
     <value>Process (Linux/Windows)</value>
   </data>
@@ -1218,7 +1233,7 @@
   <data name="menuModeRule" xml:space="preserve">
     <value>Rule</value>
   </data>
-  <data name="menuProxiesDelaytest" xml:space="preserve">
+  <data name="menuDelaytest" xml:space="preserve">
     <value>Latency Test</value>
   </data>
   <data name="menuProxiesDelaytestPart" xml:space="preserve">
@@ -1459,7 +1474,7 @@
     <value>Custom DNS Enabled, This Page's Settings Invalid</value>
   </data>
   <data name="TbBlockSVCBHTTPSQueriesTips" xml:space="preserve">
-    <value>Block ECH and HTTP/3 availability checks when enabled</value>
+    <value>Block ECH and HTTP/3 availability checks when enabled. Always enabled in Xray</value>
   </data>
   <data name="FillCorrectConfigTemplateText" xml:space="preserve">
     <value>Please fill in the correct config template</value>
@@ -1856,5 +1871,32 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="LvCustomCoreType" xml:space="preserve">
     <value>Custom config core</value>
+  </data>
+  <data name="TbXrayOnly" xml:space="preserve">
+    <value>Xray Only</value>
+  </data>
+  <data name="TbBlockAAAAQueries" xml:space="preserve">
+    <value>Block AAAA Queries</value>
+  </data>
+  <data name="TbBlockAAAAQueriesTips" xml:space="preserve">
+    <value>Block IPv6 queries when enabled</value>
+  </data>
+  <data name="TbDNS" xml:space="preserve">
+    <value>DNS</value>
+  </data>
+  <data name="TbSettingsMux4Ray" xml:space="preserve">
+    <value>Xray Mux setting</value>
+  </data>
+  <data name="LvRequestHeaders" xml:space="preserve">
+    <value>HTTP headers (JSON)</value>
+  </data>
+  <data name="SubRequestHeadersTips" xml:space="preserve">
+    <value>Optional. Example: {"X-hwid": "my_device"}. Values override default headers for all URLs in this group, including the subscription conversion service.</value>
+  </data>
+  <data name="SubRequestHeadersInvalid" xml:space="preserve">
+    <value>Invalid HTTP headers. Use a JSON object with unique header names and string values. Header names and values must not contain line breaks.</value>
+  </data>
+  <data name="TbSortingProcess" xml:space="preserve">
+    <value>Process</value>
   </data>
 </root>
