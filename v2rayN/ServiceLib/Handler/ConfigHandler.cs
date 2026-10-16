@@ -135,10 +135,7 @@ public static class ConfigHandler
         {
             config.SpeedTestItem.SpeedPingTestUrl = Global.SpeedPingTestUrls.First();
         }
-        if (config.SpeedTestItem.MixedConcurrencyCount < 1)
-        {
-            config.SpeedTestItem.MixedConcurrencyCount = 5;
-        }
+        config.SpeedTestItem.MixedConcurrencyCount = Math.Max(config.SpeedTestItem.MixedConcurrencyCount, Global.SpeedTestConcurrencyCountMin);
         if (config.SpeedTestItem.UdpTestTarget.IsNullOrEmpty())
         {
             config.SpeedTestItem.UdpTestTarget = Global.UdpTestTargets.First();
@@ -298,6 +295,7 @@ public static class ConfigHandler
             EConfigType.WireGuard => await AddWireguardServer(config, item),
             EConfigType.Anytls => await AddAnytlsServer(config, item),
             EConfigType.Naive => await AddNaiveServer(config, item),
+            EConfigType.MASQUE => await AddMasqueServer(config, item),
             _ => -1,
         };
         return ret;
@@ -998,6 +996,29 @@ public static class ConfigHandler
         return 0;
     }
 
+    public static async Task<int> AddMasqueServer(Config config, ProfileItem profileItem, bool toFile = true)
+    {
+        profileItem.ConfigType = EConfigType.MASQUE;
+
+        profileItem.Address = profileItem.Address.TrimEx();
+        profileItem.Username = profileItem.Username.TrimEx();
+        profileItem.Password = profileItem.Password.TrimEx();
+        profileItem.Fingerprint = string.Empty;
+        profileItem.Alpn = string.Empty;
+        profileItem.Network = string.Empty;
+        profileItem.AllowInsecure = string.Empty;
+        if (profileItem.StreamSecurity.IsNullOrEmpty())
+        {
+            profileItem.StreamSecurity = Global.StreamSecurity;
+        }
+        if (profileItem.Password.IsNullOrEmpty())
+        {
+            return -1;
+        }
+        await AddServerCommon(config, profileItem, toFile);
+        return 0;
+    }
+
     /// <summary>
     /// Sort the server list by the specified column
     /// Updates the sort order in the profile extension data
@@ -1537,7 +1558,7 @@ public static class ConfigHandler
                     p != null &&
                     p.IsValid() &&
                     (!p.ConfigType.IsComplexType() || p.ConfigType == EConfigType.Outbound) &&
-                    (extraItem.Filter.IsNullOrEmpty() || Regex.IsMatch(p.Remarks, extraItem.Filter))
+                    Utils.IsRegexMatch(p.Remarks, extraItem.Filter)
                 )
                 .ToList() ?? [];
             if (matchedChildProfiles.Count == 0)
@@ -1676,7 +1697,7 @@ public static class ConfigHandler
             //exist sub items //filter
             if (isSub && subid.IsNotEmpty() && subFilter.IsNotEmpty())
             {
-                if (!Regex.IsMatch(profileItem.Remarks, subFilter))
+                if (!Utils.IsRegexMatch(profileItem.Remarks, subFilter))
                 {
                     continue;
                 }
@@ -1696,6 +1717,7 @@ public static class ConfigHandler
                 EConfigType.WireGuard => await AddWireguardServer(config, profileItem, false),
                 EConfigType.Anytls => await AddAnytlsServer(config, profileItem, false),
                 EConfigType.Naive => await AddNaiveServer(config, profileItem, false),
+                EConfigType.MASQUE => await AddMasqueServer(config, profileItem, false),
                 _ => -1,
             };
 
@@ -1766,7 +1788,7 @@ public static class ConfigHandler
         }
         if (lstProfiles.Count > 0)
         {
-            var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub);
+            var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub, subItem);
             if (count > 0)
             {
                 return count;
@@ -1812,7 +1834,7 @@ public static class ConfigHandler
 
         if (lstProfiles?.Count > 0)
         {
-            var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub);
+            var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub, subItem);
             if (count > 0)
             {
                 return count;
@@ -1826,7 +1848,8 @@ public static class ConfigHandler
         Config config,
         List<ProfileItem> lstProfiles,
         string subid,
-        bool isSub)
+        bool isSub,
+        SubItem? subItem)
     {
         var count = 0;
         foreach (var it in lstProfiles)
@@ -1836,6 +1859,7 @@ public static class ConfigHandler
 
             if (it.ConfigType == EConfigType.Custom)
             {
+                it.PreSocksPort = subItem?.PreSocksPort;
                 if (await AddCustomServer(config, it, true) == 0)
                 {
                     count++;

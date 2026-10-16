@@ -96,10 +96,16 @@ public class Global
     public const string XrayLocalAsset = "XRAY_LOCATION_ASSET";
     public const string XrayLocalCert = "XRAY_LOCATION_CERT";
     public const int SpeedTestPageSize = 1000;
+    public const int SpeedTestConcurrencyCountMin = 10;
     public const string LinuxBash = "/bin/bash";
     public const string StringTrue = "true";
     public const string StringFalse = "false";
     public const int SqliteMaxBatchSize = 10000;
+    public static readonly TimeSpan LocalFetch = TimeSpan.FromSeconds(5);
+    public static readonly TimeSpan DirectFetch = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan ProxyFetch = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan DirectDownloadConnect = TimeSpan.FromSeconds(5);
+    public static readonly TimeSpan ProxyDownloadConnect = TimeSpan.FromSeconds(10);
 
     public const string SingboxDirectDNSTagPrefix = "direct-dns-";
     public const string SingboxRemoteDNSTagPrefix = "remote-dns-";
@@ -259,7 +265,8 @@ public class Global
         { EConfigType.TUIC, "tuic" },
         { EConfigType.WireGuard, "wireguard" },
         { EConfigType.Anytls, "anytls" },
-        { EConfigType.Naive, "naive" }
+        { EConfigType.Naive, "naive" },
+        { EConfigType.MASQUE, "masque" },
     };
 
     public static readonly List<string> VmessSecurities =
@@ -369,6 +376,7 @@ public class Global
         EConfigType.Trojan,
         EConfigType.Hysteria2,
         EConfigType.WireGuard,
+        EConfigType.MASQUE,
         EConfigType.SOCKS,
         EConfigType.HTTP,
     ];
@@ -384,6 +392,7 @@ public class Global
         EConfigType.Anytls,
         EConfigType.Naive,
         EConfigType.WireGuard,
+        EConfigType.MASQUE,
         EConfigType.SOCKS,
         EConfigType.HTTP,
     ];
@@ -643,10 +652,10 @@ public class Global
         { ECoreType.Xray, "XTLS/Xray-core" },
         { ECoreType.sing_box, "SagerNet/sing-box" },
         { ECoreType.mihomo, "MetaCubeX/mihomo" },
-        { ECoreType.hysteria, "apernet/hysteria" },
-        { ECoreType.hysteria2, "apernet/hysteria" },
+        { ECoreType.hysteria, "HyNetworks/hysteria" },
+        { ECoreType.hysteria2, "HyNetworks/hysteria" },
         { ECoreType.naiveproxy, "klzgrad/naiveproxy" },
-        { ECoreType.tuic, "EAimTY/tuic" },
+        { ECoreType.tuic, "tuic-protocol/tuic" },
         { ECoreType.juicity, "juicity/juicity" },
         { ECoreType.brook, "txthinking/brook" },
         { ECoreType.overtls, "ShadowsocksR-Live/overtls" },

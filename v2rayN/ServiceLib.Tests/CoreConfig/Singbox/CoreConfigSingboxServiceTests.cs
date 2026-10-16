@@ -38,9 +38,12 @@ public class CoreConfigSingboxServiceTests
     }
 
     [Test]
-    public async Task GenerateClientConfigContent_ParallelLanOverride_ShouldListenOnAllInterfaces()
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task GenerateClientConfigContent_ParallelLanOverride_ShouldListenOnAllInterfaces(bool legacyNewPortForLan)
     {
         var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.Inbound.First().NewPort4LAN = legacyNewPortForLan;
         CoreConfigTestFactory.BindAppManagerConfig(config);
         var node = CoreConfigTestFactory.CreateSocksNode(ECoreType.sing_box);
         var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box) with
@@ -55,6 +58,32 @@ public class CoreConfigSingboxServiceTests
         await result.Success.Should().BeTrue();
         await cfg.inbounds.Should().Contain(i =>
             i.type == nameof(EInboundProtocol.mixed) && i.listen == "0.0.0.0" && i.listen_port == 41210);
+        await cfg.inbounds.Count.Should().BeEqualTo(1);
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_ParallelCache_ShouldBeIsolatedPerNode()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.CoreBasicItem.EnableCacheFile4Sbox = true;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var paths = new List<string>();
+        foreach (var indexId in new[] { "cache-node-1", "cache-node-2" })
+        {
+            var node = CoreConfigTestFactory.CreateSocksNode(ECoreType.sing_box, indexId);
+            var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box) with
+            {
+                LocalPortOverride = 41210 + paths.Count,
+                StatePortOverride = 32000 + paths.Count,
+            };
+            var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+            await result.Success.Should().BeTrue();
+            var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+            paths.Add(cfg.experimental!.cache_file!.path!);
+        }
+
+        await paths.Distinct().Count().Should().BeEqualTo(2);
+        await paths.Any(path => path == Utils.GetBinPath("cache.db")).Should().BeFalse();
     }
 
     [Test]
@@ -751,7 +780,6 @@ public class CoreConfigSingboxServiceTests
                 $"'{address}' must leave room for the peer address the system stack derives");
         }
     }
-
 
     [Test]
     public async Task GenerateClientConfigContent_CustomOutbound_ShouldReplaceWithUserCustomOutboundJson()

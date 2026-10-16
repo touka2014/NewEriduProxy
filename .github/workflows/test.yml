@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+      - new-eridu-proxy
+      - 'upgrade/**'
     paths:
       - 'v2rayN/ServiceLib/**'
       - 'v2rayN/ServiceLib.UdpTest/**'
@@ -15,6 +17,7 @@ on:
   pull_request:
     branches:
       - master
+      - new-eridu-proxy
     paths:
       - 'v2rayN/ServiceLib/**'
       - 'v2rayN/ServiceLib.UdpTest/**'

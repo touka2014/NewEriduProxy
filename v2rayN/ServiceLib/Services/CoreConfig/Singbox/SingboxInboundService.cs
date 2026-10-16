@@ -26,6 +26,7 @@ public partial class CoreConfigSingboxService
                 if (context.LocalPortOverride.HasValue)
                 {
                     inboundConf.SecondLocalPortEnabled = false;
+                    inboundConf.NewPort4LAN = false;
                     inboundConf.AllowLANConn = context.AllowLanOverride ?? false;
                 }
                 inbound.listen_port = listenPort;
@@ -69,7 +70,7 @@ public partial class CoreConfigSingboxService
                 }
 
                 var tunInbound = JsonUtils.Deserialize<Inbound4Sbox>(EmbedUtils.GetEmbedText(Global.TunSingboxInboundFileName)) ?? new Inbound4Sbox { };
-                tunInbound.interface_name = context.IsMacOS ? $"utun{new Random().Next(99)}" : "singbox_tun";
+                tunInbound.interface_name = context.IsMacOS ? null : "singbox_tun";
                 tunInbound.mtu = _config.TunModeItem.Mtu;
                 tunInbound.auto_route = _config.TunModeItem.AutoRoute;
                 tunInbound.strict_route = _config.TunModeItem.StrictRoute;

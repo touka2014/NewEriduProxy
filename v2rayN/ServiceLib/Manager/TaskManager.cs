@@ -12,23 +12,17 @@ public class TaskManager
         _config = config;
         _updateFunc = updateFunc;
 
-        _ = Task.Factory.StartNew(
-            ScheduledTasks,
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        Task.Run(ScheduledTasks);
     }
 
     private async Task ScheduledTasks()
     {
         Logging.SaveLog("Setup Scheduled Tasks");
 
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
         var numOfExecuted = 1;
-        while (true)
+        while (await timer.WaitForNextTickAsync().ConfigureAwait(false))
         {
-            //1 minute
-            await Task.Delay(1000 * 60);
-
             //Execute once 1 minute
             try
             {
@@ -140,7 +134,7 @@ public class TaskManager
 
         var updateService = new UpdateService(_config, async (success, msg) => await Task.CompletedTask);
 
-        var msgs = await updateService.CheckHasUpdateOnlyAll(_config.CheckUpdateItem.CheckPreReleaseUpdate, _config.CheckUpdateItem.UpdateViaProxy);
+        var msgs = await updateService.CheckHasUpdateOnlyAll(_config.CheckUpdateItem.UpdateViaProxy);
         foreach (var msg in msgs)
         {
             await _updateFunc?.Invoke(false, msg);

@@ -19,7 +19,9 @@ public partial class CoreConfigSingboxService
             _coreConfig.experimental.cache_file = new CacheFile4Sbox()
             {
                 enabled = true,
-                path = Utils.GetBinPath("cache.db"),
+                path = Utils.GetBinPath(context.LocalPortOverride.HasValue
+                    ? $"cache-parallel-{Utils.GetMd5(_node.IndexId)}.db"
+                    : "cache.db"),
                 store_fakeip = context.SimpleDnsItem.FakeIP == true
             };
         }

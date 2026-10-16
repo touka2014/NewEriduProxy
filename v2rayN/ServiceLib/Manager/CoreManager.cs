@@ -147,7 +147,7 @@ public class CoreManager
     public async Task<ProcessService?> StartParallelCore(CoreConfigContext context, string configFileName)
     {
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(context.RunCoreType);
-        return await RunProcess(coreInfo, configFileName, false, false);
+        return await RunProcess(coreInfo, configFileName, true, false);
     }
 
     public async Task CoreStop()
@@ -222,7 +222,7 @@ public class CoreManager
         await _updateFunc?.Invoke(notify, msg);
     }
 
-    private static async Task WaitForProxyPort(CoreConfigContext? preContext, int timeoutMs = 5000)
+    private static async Task WaitForProxyPort(CoreConfigContext? preContext)
     {
         if (preContext is null)
         {
@@ -233,7 +233,7 @@ public class CoreManager
             return;
         }
 
-        using var rootCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs));
+        using var rootCts = new CancellationTokenSource(Global.LocalFetch);
         var rootToken = rootCts.Token;
 
         var port = preContext.Node.Port;

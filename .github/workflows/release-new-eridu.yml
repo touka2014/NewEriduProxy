@@ -3,7 +3,7 @@ name: Release New Eridu Proxy
 on:
   push:
     tags:
-      - "v0.1.0-beta.1"
+      - "v[0-9]*"
 
 permissions:
   contents: write
@@ -25,6 +25,20 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Validate version and release notes
+        id: metadata
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content -Raw "v2rayN/Directory.Build.props"
+          $metadata = $props.Project.PropertyGroup | Where-Object { $_.VersionPrefix }
+          $version = [string]$metadata.VersionPrefix
+          if ($metadata.VersionSuffix) { $version += "-$($metadata.VersionSuffix)" }
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw "Tag and product version do not match." }
+          $notes = ".github/release-notes/$env:GITHUB_REF_NAME.md"
+          if (-not (Test-Path -LiteralPath $notes)) { throw "Release notes are missing: $notes" }
+          "title=New Eridu Proxy $env:GITHUB_REF_NAME — $($metadata.ReleaseCodename)" >> $env:GITHUB_OUTPUT
+          "prerelease=$($version.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
       - name: Prepare verified runtime cores
         shell: pwsh
         run: ./scripts/prepare-cores.ps1
@@ -40,6 +54,10 @@ jobs:
       - name: Run tests
         shell: pwsh
         run: ./v2rayN/ServiceLib.Tests/bin/Release/net10.0/ServiceLib.Tests.exe --no-ansi --progress off --output Normal
+
+      - name: Verify parallel core operation
+        shell: pwsh
+        run: dotnet run --project v2rayN/ServiceLib.RuntimeTests/ServiceLib.RuntimeTests.csproj -c Release
 
       - name: Publish application
         shell: pwsh
@@ -101,10 +119,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: New Eridu Proxy v0.1.0-beta.1 — Signal Search
-          prerelease: true
+          name: ${{ steps.metadata.outputs.title }}
+          prerelease: ${{ steps.metadata.outputs.prerelease == 'true' }}
           make_latest: false
-          body_path: .github/release-notes/v0.1.0-beta.1.md
+          body_path: .github/release-notes/${{ github.ref_name }}.md
           files: |
             dist/NewEriduProxy-windows-x64.zip
             dist/NewEriduProxy-windows-x64.zip.sha256

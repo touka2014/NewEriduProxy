@@ -501,6 +501,31 @@ public class Utils
         };
     }
 
+    public static List<(string, string)> ParseHeaders(string? headers)
+    {
+        var result = new List<(string, string)>();
+        if (headers.IsNullOrEmpty())
+        {
+            return result;
+        }
+        var lines = headers.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            var parts = line.Split(new[] { ':' }, 2);
+            if (parts.Length != 2)
+            {
+                continue;
+            }
+            var key = parts[0].Trim();
+            var value = parts[1].Trim();
+            if (!string.IsNullOrEmpty(key))
+            {
+                result.Add((key, value));
+            }
+        }
+        return result;
+    }
+
     #endregion Conversion Functions
 
     #region Data Checks
@@ -724,6 +749,40 @@ public class Utils
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Regex match with a timeout guard. Filter patterns can come from user
+    /// input or subscription content while the tested text (remarks, log
+    /// messages) is attacker-influenced, so an evil pattern like (a+)+$
+    /// would otherwise hang the caller (ReDoS). On timeout or invalid
+    /// pattern, fail open (return true) so no node/message is silently
+    /// dropped; the incident is logged.
+    /// </summary>
+    public static bool IsRegexMatch(string? input, string? pattern, int timeoutSeconds = 2)
+    {
+        if (pattern.IsNullOrEmpty())
+        {
+            return true;
+        }
+        if (input.IsNullOrEmpty())
+        {
+            return false;
+        }
+        try
+        {
+            return Regex.IsMatch(input, pattern, RegexOptions.None, TimeSpan.FromSeconds(timeoutSeconds));
+        }
+        catch (RegexMatchTimeoutException ex)
+        {
+            Logging.SaveLog("IsRegexMatch timeout", ex);
+            return true;
+        }
+        catch (ArgumentException ex)
+        {
+            Logging.SaveLog("IsRegexMatch invalid pattern", ex);
+            return true;
+        }
     }
 
     #endregion Data Checks
@@ -1028,12 +1087,12 @@ public class Utils
         return new Dictionary<string, string>();
     }
 
-    public static async Task<string?> GetCliWrapOutput(string filePath, string? arg)
+    public static async Task<string?> GetCliWrapOutput(string filePath, string? arg, CancellationToken cancellationToken = default)
     {
-        return await GetCliWrapOutput(filePath, arg != null ? new List<string>() { arg } : null);
+        return await GetCliWrapOutput(filePath, arg != null ? new List<string>() { arg } : null, cancellationToken);
     }
 
-    public static async Task<string?> GetCliWrapOutput(string filePath, IEnumerable<string>? args)
+    public static async Task<string?> GetCliWrapOutput(string filePath, IEnumerable<string>? args, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -1050,7 +1109,7 @@ public class Utils
                 }
             }
 
-            var result = await cmd.ExecuteBufferedAsync();
+            var result = await cmd.ExecuteBufferedAsync(cancellationToken);
             if (result.IsSuccess)
             {
                 return result.StandardOutput ?? "";
@@ -1392,7 +1451,11 @@ public class Utils
             if (File.Exists(fileName))
             {
                 var currentMode = File.GetUnixFileMode(fileName);
-                File.SetUnixFileMode(fileName, currentMode | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+                var executableMode = currentMode | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+                if (currentMode != executableMode)
+                {
+                    File.SetUnixFileMode(fileName, executableMode);
+                }
                 return true;
             }
         }

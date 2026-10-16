@@ -109,11 +109,21 @@ Run the test suite with:
 v2rayN\ServiceLib.Tests\bin\Release\net10.0\ServiceLib.Tests.exe --no-ansi --progress off --output Normal
 ```
 
+After preparing the runtime cores, verify real parallel listeners with synthetic local traffic:
+
+```powershell
+dotnet run --project v2rayN\ServiceLib.RuntimeTests\ServiceLib.RuntimeTests.csproj -c Release
+```
+
+The runtime checks use a separate portable data directory and a local SOCKS test server. They exercise two Xray and two sing-box instances, per-node LAN bindings, occupied TCP/UDP ports, transfer statistics, daily counter reset, and process cleanup.
+
 ## Releases
 
 The current prerelease is [**v0.1.0-beta.1 — Signal Search**](https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.1), based on v2rayN 7.25.1. It is the first public test build of the independent New Eridu Proxy version line.
 
 The GitHub Release provides a self-contained Windows x64 package and its SHA-256 checksum. Screenshots will be added later without changing the release version.
+
+**In testing:** `v0.1.0-beta.2 — Signal Search` integrates upstream v2rayN 7.25.6 plus the mainline fixes through `95f438a`. This build remains on `upgrade/v2rayn-7.25.6` pending manual validation. It includes Xray `26.10.10` (an official core prerelease) and sing-box `1.14.3`, with download hashes pinned in the preparation script.
 
 ### Versioning and release names
 

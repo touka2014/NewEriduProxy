@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ServiceLib\ServiceLib.csproj" />
+        <Compile Include="..\AmazTool\Utils.cs" Link="Upgrade\UpgradeUtils.cs" />
     </ItemGroup>
 
     <ItemGroup>
