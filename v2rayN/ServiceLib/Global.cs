@@ -3,6 +3,7 @@ namespace ServiceLib;
 public class Global
 {
     public const string AppName = "NewEriduProxy";
+    public const string AppDisplayName = "New Eridu Proxy";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
     public const string GeoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";

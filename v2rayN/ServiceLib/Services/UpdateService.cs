@@ -29,11 +29,11 @@ public partial class UpdateService(Config config, Func<bool, string, Task> updat
             _ = UpdateFunc(false, args.GetException().Message);
         };
 
-        await UpdateFunc(false, string.Format(ResUI.MsgStartUpdating, ECoreType.v2rayN));
+        await UpdateFunc(false, string.Format(ResUI.MsgStartUpdating, Global.AppDisplayName));
         var result = await CheckUpdateAsync(downloadHandle, ECoreType.v2rayN, preRelease, blProxy);
         if (result.Success)
         {
-            await UpdateFunc(false, string.Format(ResUI.MsgParsingSuccessfully, ECoreType.v2rayN));
+            await UpdateFunc(false, string.Format(ResUI.MsgParsingSuccessfully, Global.AppDisplayName));
             await UpdateFunc(false, result.Msg);
 
             url = result.Url!;
@@ -78,11 +78,11 @@ public partial class UpdateService(Config config, Func<bool, string, Task> updat
             _ = UpdateFunc(false, args.GetException().Message);
         };
 
-        await UpdateFunc(false, string.Format(ResUI.MsgStartUpdating, type));
+        await UpdateFunc(false, string.Format(ResUI.MsgStartUpdating, Utils.GetCoreDisplayName(type)));
         var result = await CheckUpdateAsync(downloadHandle, type, preRelease, blProxy);
         if (result.Success)
         {
-            await UpdateFunc(false, string.Format(ResUI.MsgParsingSuccessfully, type));
+            await UpdateFunc(false, string.Format(ResUI.MsgParsingSuccessfully, Utils.GetCoreDisplayName(type)));
             await UpdateFunc(false, result.Msg);
 
             url = result.Url!;
@@ -125,7 +125,7 @@ public partial class UpdateService(Config config, Func<bool, string, Task> updat
             var result = await CheckHasUpdateOnly(type, preRelease, blProxy, cancellationToken);
             if (result.Success && result.Version != null)
             {
-                var msg = string.Format(ResUI.MsgCheckUpdateHasNewVersion, type, result.Version);
+                var msg = string.Format(ResUI.MsgCheckUpdateHasNewVersion, Utils.GetCoreDisplayName(type), result.Version);
                 msgs.Add(msg);
                 AppManager.Instance.SetLastCheckUpdateResult(type, msg);
             }
@@ -292,7 +292,7 @@ public partial class UpdateService(Config config, Func<bool, string, Task> updat
                 case ECoreType.v2rayN:
                     {
                         curVersion = new SemanticVersion(Utils.GetVersionInfo());
-                        message = string.Format(ResUI.IsLatestN, type, curVersion.ToStandardVersionString("v"));
+                        message = string.Format(ResUI.IsLatestN, Global.AppDisplayName, curVersion.ToStandardVersionString("v"));
                         url = string.Format(coreUrl, version);
                         break;
                     }

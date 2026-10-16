@@ -29,6 +29,7 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 - Isolated sing-box caches so multiple nodes can start without sharing a database lock.
 - Prevented legacy global LAN-port settings from creating extra listeners for parallel nodes.
 - Preserved parallel core startup output for troubleshooting.
+- Replaced remaining client labels in settings, update rows, notifications, and startup logs with New Eridu Proxy while preserving stored update identifiers.
 
 ### Validation
 

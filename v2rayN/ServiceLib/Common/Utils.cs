@@ -912,6 +912,11 @@ public class Utils
 
     #region Miscellaneous
 
+    public static string GetCoreDisplayName(ECoreType? coreType)
+    {
+        return coreType == ECoreType.v2rayN ? Global.AppDisplayName : coreType?.ToString() ?? string.Empty;
+    }
+
     public static bool UpgradeAppExists(out string upgradeFileName)
     {
         upgradeFileName = Path.Combine(GetBaseDirectory(), GetExeName("AmazTool"));
@@ -927,7 +932,7 @@ public class Utils
         try
         {
             return blFull
-                ? $"{Global.AppName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
+                ? $"{Global.AppDisplayName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
                 : $"{Global.AppName}/{GetVersionInfo()}";
         }
         catch (Exception ex)
@@ -935,7 +940,7 @@ public class Utils
             Logging.SaveLog(_tag, ex);
         }
 
-        return Global.AppName;
+        return Global.AppDisplayName;
     }
 
     public static string GetVersionInfo()
