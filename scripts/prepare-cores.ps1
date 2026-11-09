@@ -54,6 +54,12 @@ try {
     }
     Copy-Item -LiteralPath $singBoxExe.FullName -Destination (Join-Path $singBoxDestination 'sing-box.exe') -Force
 
+    # Reproducible upstream archives can share timestamps across versions. Mark
+    # these four installed assets as fresh for MSBuild's PreserveNewest copies.
+    foreach ($asset in 'xray/xray.exe', 'sing_box/sing-box.exe', 'shared/geoip.dat', 'shared/geosite.dat') {
+        (Get-Item -LiteralPath (Join-Path $destinationPath $asset)).LastWriteTimeUtc = [DateTime]::UtcNow
+    }
+
     Write-Output "Prepared Xray v26.11.9 and sing-box v1.14.3 under $destinationPath"
 }
 finally {
