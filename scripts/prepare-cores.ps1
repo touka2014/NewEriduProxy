@@ -28,8 +28,8 @@ try {
     $singBoxExtract = Join-Path $temporaryRoot 'sing-box'
 
     Get-VerifiedArchive `
-        -Uri 'https://github.com/XTLS/Xray-core/releases/download/v26.10.10/Xray-windows-64.zip' `
-        -Sha256 'bfefce8e9804e53b7d75b7c49d958b34e89890d9d5e672329089d1b3111647af' `
+        -Uri 'https://github.com/XTLS/Xray-core/releases/download/v26.11.9/Xray-windows-64.zip' `
+        -Sha256 '1262522266337b824f07beb8e1375786b437683b3890105469088f8e17e0a69d' `
         -OutputPath $xrayArchive
     Get-VerifiedArchive `
         -Uri 'https://github.com/SagerNet/sing-box/releases/download/v1.14.3/sing-box-1.14.3-windows-amd64.zip' `
@@ -54,7 +54,7 @@ try {
     }
     Copy-Item -LiteralPath $singBoxExe.FullName -Destination (Join-Path $singBoxDestination 'sing-box.exe') -Force
 
-    Write-Output "Prepared Xray v26.10.10 and sing-box v1.14.3 under $destinationPath"
+    Write-Output "Prepared Xray v26.11.9 and sing-box v1.14.3 under $destinationPath"
 }
 finally {
     $resolvedTempRoot = [System.IO.Path]::GetFullPath($temporaryRoot)

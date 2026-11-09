@@ -1,6 +1,6 @@
 # New Eridu Proxy Customization Notes
 
-This branch extends v2rayN with parallel multi-node proxy operation and removes the Promotion entry. The development build is `v0.1.0-beta.2`, codenamed **Signal Search**, based on upstream v2rayN 7.25.6 with mainline changes through `95f438a`. It awaits manual validation on `upgrade/v2rayn-7.25.6`. The published beta.1 remains available, along with the historical integration tags.
+This branch extends v2rayN with parallel multi-node proxy operation and removes the Promotion entry. The development build is `v0.1.0-beta.2`, codenamed **Signal Search**, based on upstream v2rayN 7.25.6 with mainline changes through `f07e3dc`. It awaits manual validation on `upgrade/mainline-20261110`. The published beta.1 remains available, along with the historical integration tags.
 
 ## Parallel node operation
 
@@ -45,4 +45,4 @@ dotnet run --project v2rayN\ServiceLib.RuntimeTests\ServiceLib.RuntimeTests.cspr
 
 The Windows WPF executable is named `NewEriduProxy.exe`.
 
-The preparation script pins Xray `26.10.10` and sing-box `1.14.3` and verifies both archives against recorded SHA-256 values. Xray `26.10.10` is an official prerelease and matches the version referenced by upstream v2rayN 7.25.6.
+The preparation script pins Xray `26.11.9` and sing-box `1.14.3` and verifies both archives against recorded SHA-256 values. Xray `26.11.9` supports the XDRIVE transport exposed by this mainline snapshot.

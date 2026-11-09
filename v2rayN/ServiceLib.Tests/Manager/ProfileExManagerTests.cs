@@ -15,7 +15,7 @@ public class ProfileExManagerTests
         await assignments.Count.Should().BeEqualTo(4);
         await ports.First().Should().BeGreaterThanOrEqualTo(Global.ParallelPortMin);
         await ports.Last().Should().BeLessThanOrEqualTo(Global.ParallelPortMax);
-        await ports.Should().BeEquivalentTo(Enumerable.Range(ports.First(), 4));
+        await ports.SequenceEqual(Enumerable.Range(ports.First(), 4)).Should().BeTrue();
         await ports.Any(activePorts.Contains).Should().BeFalse();
     }
 }

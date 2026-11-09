@@ -123,7 +123,7 @@ The current prerelease is [**v0.1.0-beta.1 — Signal Search**](https://github.c
 
 The GitHub Release provides a self-contained Windows x64 package and its SHA-256 checksum. Screenshots will be added later without changing the release version.
 
-**In testing:** `v0.1.0-beta.2 — Signal Search` integrates upstream v2rayN 7.25.6 plus the mainline fixes through `95f438a`. This build remains on `upgrade/v2rayn-7.25.6` pending manual validation. It includes Xray `26.10.10` (an official core prerelease) and sing-box `1.14.3`, with download hashes pinned in the preparation script.
+**In testing:** `v0.1.0-beta.2 — Signal Search` integrates upstream v2rayN 7.25.6 plus the mainline fixes through `f07e3dc`. This build remains on `upgrade/mainline-20261110` pending manual validation. It includes Xray `26.11.9` and sing-box `1.14.3`, with download hashes pinned in the preparation script.
 
 ### Versioning and release names
 

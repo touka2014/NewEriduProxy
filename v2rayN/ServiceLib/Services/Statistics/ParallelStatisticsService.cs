@@ -43,13 +43,14 @@ public sealed class ParallelStatisticsService : IDisposable
     private async Task RunXrayAsync()
     {
         var url = $"{Global.HttpProtocol}{Global.Loopback}:{_statePort}/debug/vars";
+        using var client = HttpClientHelper.Instance.GetHttpClient(false);
         while (!_cts.IsCancellationRequested)
         {
             try
             {
                 await Task.Delay(1000, _cts.Token);
-                var result = await HttpClientHelper.Instance.TryGetAsync(url);
-                var source = JsonUtils.Deserialize<V2rayMetricsVars>(result ?? string.Empty);
+                var result = await client.GetStringAsync(url, _cts.Token).ConfigureAwait(false);
+                var source = JsonUtils.Deserialize<V2rayMetricsVars>(result);
                 if (source?.stats?.outbound == null)
                 {
                     continue;
@@ -79,7 +80,7 @@ public sealed class ParallelStatisticsService : IDisposable
                 _last = total;
                 await _updateFunc(update);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (_cts.IsCancellationRequested)
             {
                 break;
             }

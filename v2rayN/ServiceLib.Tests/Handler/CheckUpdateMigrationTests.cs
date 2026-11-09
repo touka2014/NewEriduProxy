@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ServiceLib.Models.Configs;
 
 namespace ServiceLib.Tests.Handler;
@@ -8,10 +7,10 @@ public class CheckUpdateMigrationTests
     [Test]
     public async Task Deserialize_LegacyPrereleaseSelection_PreservesApplicationAndXrayUpdates()
     {
-        var item = JsonSerializer.Deserialize<CheckUpdateItem>("""{"CheckPreReleaseUpdate":true}""")!;
+        var item = JsonUtils.Deserialize<CheckUpdateItem>("""{"CheckPreReleaseUpdate":true}""")!;
 
-        await item.CheckPreReleaseCoreTypes!.Should().BeEquivalentTo(new[] { "v2rayN", "Xray" });
-        await JsonSerializer.Serialize(item).Contains("CheckPreReleaseUpdate").Should().BeFalse();
+        await item.CheckPreReleaseCoreTypes!.SequenceEqual(["v2rayN", "Xray"]).Should().BeTrue();
+        await JsonUtils.Serialize(item).Contains("CheckPreReleaseUpdate").Should().BeFalse();
     }
 
     [Test]
@@ -19,16 +18,16 @@ public class CheckUpdateMigrationTests
     [Arguments("[\"Xray\"]")]
     public async Task Deserialize_NewSelection_TakesPrecedenceOverLegacyFlag(string selection)
     {
-        var item = JsonSerializer.Deserialize<CheckUpdateItem>(
+        var item = JsonUtils.Deserialize<CheckUpdateItem>(
             $"{{\"CheckPreReleaseUpdate\":true,\"CheckPreReleaseCoreTypes\":{selection}}}")!;
 
-        await item.CheckPreReleaseCoreTypes!.Should().BeEquivalentTo(JsonSerializer.Deserialize<string[]>(selection)!);
+        await item.CheckPreReleaseCoreTypes!.SequenceEqual(JsonUtils.Deserialize<string[]>(selection)!).Should().BeTrue();
     }
 
     [Test]
     public async Task Deserialize_LegacyStableSelection_DoesNotEnablePrereleases()
     {
-        var item = JsonSerializer.Deserialize<CheckUpdateItem>("""{"CheckPreReleaseUpdate":false}""")!;
+        var item = JsonUtils.Deserialize<CheckUpdateItem>("""{"CheckPreReleaseUpdate":false}""")!;
 
         await (item.CheckPreReleaseCoreTypes?.Count ?? 0).Should().BeEqualTo(0);
     }

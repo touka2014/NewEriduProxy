@@ -20,6 +20,7 @@ Environment.SetEnvironmentVariable(Global.LocalAppData, null, EnvironmentVariabl
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 Require(AppManager.Instance.InitApp(), "Initialize isolated application state");
 var config = AppManager.Instance.Config;
+await CertPemManager.Instance.Init(config);
 Require(!config.Inbound[0].EnableMainInbound && config.Inbound[0].LocalPort == 20808,
     "Main local 20808 is disabled by default");
 Require(!config.TunModeItem.EnableTun && config.UiItem.CurrentLanguage == "en",

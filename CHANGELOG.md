@@ -18,8 +18,8 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 
 ### Changed
 
-- Integrated v2rayN 7.25.6 and subsequent mainline fixes through `95f438a`.
-- Pinned Xray `26.10.10` and sing-box `1.14.3` with verified archive hashes.
+- Integrated v2rayN 7.25.6 and subsequent mainline fixes through `f07e3dc`.
+- Pinned Xray `26.11.9` and sing-box `1.14.3` with verified archive hashes.
 - Inherited upstream download, latency-test, UDP-test, DNS, and interface improvements.
 - Preserved the legacy prerelease setting while migrating to per-core update selections.
 - Made release automation validate tag/version alignment and run real-core checks before packaging.
@@ -33,7 +33,7 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 
 ### Validation
 
-- 151 automated tests passed.
+- 271 ServiceLib tests and 405 Web API tests passed.
 - Two Xray and two sing-box processes passed local transfer and lifecycle checks.
 - Manual application validation is required before publishing this prerelease.
 
