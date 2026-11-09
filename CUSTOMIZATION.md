@@ -1,6 +1,6 @@
 # New Eridu Proxy Customization Notes
 
-This branch extends v2rayN with parallel multi-node proxy operation and removes the Promotion entry. The development build is `v0.1.0-beta.2`, codenamed **Signal Search**, based on upstream v2rayN 7.25.6 with mainline changes through `f07e3dc`. It awaits manual validation on `upgrade/mainline-20261110`. The published beta.1 remains available, along with the historical integration tags.
+The `new-eridu-proxy` branch extends v2rayN with parallel multi-node proxy operation and removes the Promotion entry. The current prerelease, **Signal Search beta 2**, integrates upstream v2rayN 7.25.6 and subsequent mainline changes through `f07e3dc`. [Release notes for v0.1.0-beta.2](https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.2)
 
 ## Parallel node operation
 

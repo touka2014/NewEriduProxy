@@ -119,11 +119,9 @@ The runtime checks use a separate portable data directory and a local SOCKS test
 
 ## Releases
 
-The current prerelease is [**v0.1.0-beta.1 — Signal Search**](https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.1), based on v2rayN 7.25.1. It is the first public test build of the independent New Eridu Proxy version line.
+The current prerelease is **v0.1.0-beta.2 — Signal Search**. It integrates v2rayN 7.25.6 and subsequent mainline fixes through `f07e3dc`. Each parallel sing-box node now has its own cache, and a failed subscription import preserves your existing profiles.
 
-The GitHub Release provides a self-contained Windows x64 package and its SHA-256 checksum. Screenshots will be added later without changing the release version.
-
-**In testing:** `v0.1.0-beta.2 — Signal Search` integrates upstream v2rayN 7.25.6 plus the mainline fixes through `f07e3dc`. This build remains on `upgrade/mainline-20261110` pending manual validation. It includes Xray `26.11.9` and sing-box `1.14.3`, with download hashes pinned in the preparation script.
+The self-contained Windows x64 package includes Xray `26.11.9` and sing-box `1.14.3`. The release page includes the ZIP, its SHA-256 checksum, and instructions for upgrading a portable installation. [Download Signal Search beta 2](https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.2)
 
 ### Versioning and release names
 

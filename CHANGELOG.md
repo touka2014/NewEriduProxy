@@ -4,7 +4,7 @@ All notable changes to New Eridu Proxy are documented in this file.
 
 The project follows [Semantic Versioning](https://semver.org/). Feature milestones may also receive a codename; prerelease and patch builds inherit the name of their parent milestone.
 
-## 0.1.0-beta.2 - Unreleased — Signal Search
+## [0.1.0-beta.2] - 2026-11-10 — Signal Search
 
 ### Security
 
@@ -28,6 +28,8 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 
 - Isolated sing-box caches so multiple nodes can start without sharing a database lock.
 - Prevented legacy global LAN-port settings from creating extra listeners for parallel nodes.
+- Preserved existing subscription profiles when a refreshed subscription fails to import.
+- Fixed persistence of repeated profile test results.
 - Preserved parallel core startup output for troubleshooting.
 - Replaced remaining client labels in settings, update rows, notifications, and startup logs with New Eridu Proxy while preserving stored update identifiers.
 
@@ -35,7 +37,7 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 
 - 271 ServiceLib tests and 405 Web API tests passed.
 - Two Xray and two sing-box processes passed local transfer and lifecycle checks.
-- Manual application validation is required before publishing this prerelease.
+- The Windows x64 build passed manual testing.
 
 ## [0.1.0-beta.1] - 2026-09-11 — Signal Search
 
@@ -66,4 +68,5 @@ The project follows [Semantic Versioning](https://semver.org/). Feature mileston
 - Per-node LAN access is disabled by default and listens on `127.0.0.1` until enabled.
 - This is a prerelease intended for wider testing before `v0.1.0`.
 
+[0.1.0-beta.2]: https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/touka2014/NewEriduProxy/releases/tag/v0.1.0-beta.1
