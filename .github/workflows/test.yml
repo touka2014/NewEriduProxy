@@ -1,11 +1,13 @@
 name: Code Test
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
       - new-eridu-proxy
       - 'upgrade/**'
+      - 'feature/**'
+      - 'fix/**'
     paths:
       - 'v2rayN/ServiceLib/**'
       - 'v2rayN/ServiceLib.UdpTest/**'
@@ -16,8 +18,8 @@ on:
       - '.github/workflows/test.yml'
   pull_request:
     branches:
-      - master
       - new-eridu-proxy
+      - 'upgrade/**'
     paths:
       - 'v2rayN/ServiceLib/**'
       - 'v2rayN/ServiceLib.UdpTest/**'
@@ -28,8 +30,7 @@ on:
       - '.github/workflows/test.yml'
 
 permissions:
-  checks: write
-  pull-requests: write
+  contents: read
 
 jobs:
   test:
@@ -47,9 +48,10 @@ jobs:
     - name: Test Code
       run: dotnet test --project ./v2rayN/ServiceLib.Tests -c Release --results-directory ./TestResults -- --report-trx
 
-    - name: Comment PR with results
+    - name: Upload test results
       if: always()
-      uses: EnricoMi/publish-unit-test-result-action@v2
+      uses: actions/upload-artifact@v7
       with:
-        files: ./TestResults/*.trx
-        comment_mode: failures
+        name: ServiceLib-test-results
+        path: ./TestResults/*.trx
+        if-no-files-found: warn

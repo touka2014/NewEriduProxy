@@ -46,3 +46,20 @@ dotnet run --project v2rayN\ServiceLib.RuntimeTests\ServiceLib.RuntimeTests.cspr
 The Windows WPF executable is named `NewEriduProxy.exe`.
 
 The preparation script pins Xray `26.11.9` and sing-box `1.14.3` and verifies both archives against recorded SHA-256 values. Xray `26.11.9` supports the XDRIVE transport exposed by this mainline snapshot.
+
+## Repository automation
+
+The active workflows follow the New Eridu Proxy Windows x64 release process.
+
+| Workflow | Trigger | Result |
+| --- | --- | --- |
+| Code Test | Relevant changes on development branches and pull requests, or a manual run | ServiceLib tests and a downloadable TRX report |
+| Release New Eridu Proxy | Version tag push or a manual run | Builds and tests Windows x64, exercises parallel cores, and uploads the ZIP and checksum |
+| Sync GitHub release notes | Versioned release notes change on `new-eridu-proxy` | Updates the matching published release descriptions |
+| Update root certificates | Mondays at 01:23 UTC, or a manual run | Validates Mozilla and Chromium roots, runs ServiceLib tests, and proposes changed bundles in one reusable PR |
+
+Manual Windows builds produce workflow artifacts. Publishing a GitHub Release requires a version tag push. This allows the full packaging workflow to be checked before publishing.
+
+Certificate maintenance requires the repository setting **Allow GitHub Actions to create and approve pull requests**. The default token permission is read-only, with write permissions declared by the workflows that need them. Certificate changes receive validation in the maintenance job because PRs created using `GITHUB_TOKEN` do not trigger the regular pull-request workflow. Maintainers review and merge the proposed updates for a future application build.
+
+The upstream WinGet submission, GPG signing, Web API packaging, and additional platform release workflows have been removed from this branch. Windows downloads are distributed through this repository's GitHub Releases. When integrating upstream changes, review changes under `.github/workflows` against these four workflows. Introducing another distribution channel requires its own New Eridu Proxy package identity and build configuration.

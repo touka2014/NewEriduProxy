@@ -1,6 +1,7 @@
 name: Release New Eridu Proxy
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v[0-9]*"
@@ -10,11 +11,11 @@ permissions:
 
 jobs:
   release-windows-x64:
-    name: Build and publish Windows x64
+    name: Build and verify Windows x64
     runs-on: windows-latest
 
     steps:
-      - name: Check out tagged source
+      - name: Check out source
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -33,10 +34,12 @@ jobs:
           $metadata = $props.Project.PropertyGroup | Where-Object { $_.VersionPrefix }
           $version = [string]$metadata.VersionPrefix
           if ($metadata.VersionSuffix) { $version += "-$($metadata.VersionSuffix)" }
-          if ($env:GITHUB_REF_NAME -ne "v$version") { throw "Tag and product version do not match." }
-          $notes = ".github/release-notes/$env:GITHUB_REF_NAME.md"
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag and product version do not match."
+          }
+          $notes = ".github/release-notes/v$version.md"
           if (-not (Test-Path -LiteralPath $notes)) { throw "Release notes are missing: $notes" }
-          "title=New Eridu Proxy $env:GITHUB_REF_NAME — $($metadata.ReleaseCodename)" >> $env:GITHUB_OUTPUT
+          "title=New Eridu Proxy v$version — $($metadata.ReleaseCodename)" >> $env:GITHUB_OUTPUT
           "prerelease=$($version.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
 
       - name: Prepare verified runtime cores
@@ -116,6 +119,7 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub prerelease
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}

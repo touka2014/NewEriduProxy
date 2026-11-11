@@ -1,9 +1,14 @@
-name: Update Certificate
+name: Update root certificates
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    # Monday at 09:23 in Asia/Singapore.
+    - cron: '23 1 * * 1'
+
+concurrency:
+  group: update-root-certificates
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -15,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -25,12 +32,33 @@ jobs:
         run: |
           dotnet run .github/scripts/UpdateCert.cs
 
+      - name: Validate root certificate bundles
+        shell: pwsh
+        run: |
+          foreach ($file in @("mozilla_roots_pem", "chrome_roots_pem")) {
+            $certificates = [System.Security.Cryptography.X509Certificates.X509Certificate2Collection]::new()
+            $certificates.ImportFromPemFile("v2rayN/ServiceLib/Sample/$file")
+            if ($certificates.Count -eq 0) { throw "Empty root certificate bundle: $file" }
+            Write-Host "$file contains $($certificates.Count) valid certificates."
+          }
+
+      # PRs created with GITHUB_TOKEN do not trigger the pull_request workflow.
+      - name: Test updated certificate resources
+        run: dotnet test --project ./v2rayN/ServiceLib.Tests -c Release
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Update certificate"
-          title: "Update certificate"
-          body: "This pull request updates the certificate."
+          add-paths: |
+            v2rayN/ServiceLib/Sample/mozilla_roots_pem
+            v2rayN/ServiceLib/Sample/chrome_roots_pem
+          commit-message: "chore: refresh trusted root certificates"
+          title: "Refresh bundled root certificates"
+          body: |
+            Updates the bundled Mozilla and Chromium roots used for HTTPS certificate validation.
+
+            Both certificate bundles passed PEM validation and the ServiceLib test suite.
+            Review the certificate changes before merging. Merged updates ship with the next application build.
           branch: github-actions/update-certificate
           delete-branch: true
